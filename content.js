@@ -57,14 +57,23 @@ window.onload = () => {
     const oddRowBackgroundColor = 'rgb(19, 19, 19)';
     const evenRowBackgroundColor = 'rgb(42, 42, 42)';
     
-    function waitForElementsInternal(selector, isSingleElement = true, validate = (el) => !!el, 
-        options = { childList: true, subtree: true, attributes: true }) {
+    function waitForElementsInternal(selector, isSingleElement = true, 
+        validate = (el) => !!el, 
+        options = { childList: true, subtree: true, attributes: true}, 
+        stopCondition = () => false) {
             return new Promise((resolve, reject) => {
                 const anyObserver = new MutationObserver((mutationsList, observer) => {
                     const elements = isSingleElement ? document.querySelector(selector) : document.querySelectorAll(selector);
+                    // 成功条件
                     if (elements && (validate == null || validate(elements))) {
                         observer.disconnect();
                         resolve(elements);
+                    }
+                    // 終了条件
+                    if (stopCondition()) {
+                        observer.disconnect();
+                        console.log(`終了条件を満たしました: ${selector} が見つかりませんでした`);
+                        resolve(null);
                     }
                 });
 
@@ -81,22 +90,27 @@ window.onload = () => {
 
         // 汎用的な要素待機関数（単一要素）
         function waitForElement(selector, validate = (el) => !!el, 
-            options = { childList: true, subtree: true, attributes: true }) {
-            return waitForElementsInternal(selector, true, validate, options);
+            options = { childList: true, subtree: true, attributes: true},
+            stopCondition = () => false) 
+        {
+            return waitForElementsInternal(selector, true, validate, options, stopCondition);
         }
 
         // 汎用的な要素待機関数（複数要素）
         function waitForElements(selector, validate = (el) => !!el, 
-            options = { childList: true, subtree: true, attributes: true }) {
-            return waitForElementsInternal(selector, false, validate, options);
+            options = { childList: true, subtree: true, attributes: true},
+            stopCondition = () => false) 
+        {
+            return waitForElementsInternal(selector, false, validate, options, stopCondition);
         }
 
         // ドライバ情報のキャッシュ
         async function cacheDriverInfo(driverIndex){
+            console.log('キャッシュ開始');
             const popupContentElement = await waitForElement('.popup-content', null);
             const driverInfo = {};
-            driverInfo.iconSource = popupContentElement
-                .querySelector('img')?.getAttribute('src');
+            driverInfo.iconSource = popupContentElement.querySelector('img')?.getAttribute('src');
+            console.log('アイコンのパス設定');
             const nameAndLevelElement = popupContentElement.querySelectorAll('p');
             driverInfo.driverName = nameAndLevelElement[0].textContent.trim();
             driverInfo.driverRarityClassName = nameAndLevelElement[0].className;
@@ -117,6 +131,7 @@ window.onload = () => {
                 }
             });
             driverInfo.subPropNameAndValues = subPropNameAndValues;
+            console.log(driverInfo);
             driverInfoList[driverIndex] = driverInfo;
             popupContentElement.parentNode.querySelector('.close-icon').click();
         }
@@ -132,8 +147,13 @@ window.onload = () => {
     
         // 最初に実行
         async function setup(){
+            // TODO:装備がない場合、タイムアウトになるので早めに装備なしを判断したい
+            //  ->セット効果がない + ステータスにプラスがない場合
             const equipInfoElements = await waitForElements('.equip-info', 
-                (els) => Array.from(els).some(el => el.querySelector('.bg')));
+                (els) => Array.from(els).some(el => el.querySelector('.bg')),
+                undefined,
+                () => !!document.querySelector('.base-add-prop') &&
+                    !!document.querySelector('.empty-content'));
             roleDetailElement = document.querySelector('.role-detail');
             // ドライバを装備しているかどうか
             const equipDriverList = Array.from(equipInfoElements)
@@ -142,17 +162,42 @@ window.onload = () => {
             const isNothingEquipped = equipDriverList.every(value => value === false);
             
             // .equip-infoで要素を取得できたらボタンを押す->情報取得->閉じる の繰り返し
-            equipDriverList.forEach((equipDriver, index) => {
-                if (equipDriver) {
-                    equipInfoElements[index].click();
-                    cacheDriverInfo(index);
+            for (let i = 0; i < equipDriverList.length; i++) {
+                if (equipDriverList[i]) {
+                    equipInfoElements[i].click();
+                    await cacheDriverInfo(i);
                 } else {
-                    driverInfoList[index] = null;
+                    driverInfoList[i] = null;
                 }
-            });
+            }
+
             console.log('遺物情報取得完了');
             console.log(driverInfoList);
             // 情報を全部取り終えたら画面を作る
+            // とりあえず親にする要素
+            const parentElement = document.querySelector('.equipment-info');
+            const mainFrameElement = document.createElement('div');
+            equipDriverList.forEach((equipDriver, index) => {
+                const driverScoreElement = document.createElement('div');
+                driverScoreElement.style.height = '20px';
+                console.log(`現在の中身は？${index}`);
+                console.dir(driverInfoList);
+                if (equipDriver) {
+                    console.log(index);
+                    console.dir(driverInfoList[index]);
+                    const driverObject = driverInfoList[index];
+                    console.log(driverObject);
+                    driverScoreElement.textContent = driverObject.mainPropName;
+                } else {
+                    driverScoreElement.textContent = '空っぽ';
+                }
+                driverScoreElement.style.color = 'white';
+                mainFrameElement.appendChild(driverScoreElement);
+            });
+            parentElement.style.height = 'auto';
+            parentElement.append(mainFrameElement);
+
+
 
             // キャラが変更されたら上記処理を再度行う
 
