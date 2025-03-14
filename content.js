@@ -135,6 +135,54 @@ window.onload = () => {
             driverInfoList[driverIndex] = driverInfo;
             popupContentElement.parentNode.querySelector('.close-icon').click();
         }
+
+        const PROP_NAME = Object.freeze({
+            HP: 'HP',
+            ATK: '攻撃力',
+            DEF: '防御力',
+            CRIT_RATE: '会心率',
+            CRIT_DMG: '会心ダメージ',
+            ANOMALY_PROFICIENCY: '異常マスタリー'
+        });
+
+        function getActivePropNames(){
+            // TODO: チェックボックス（ストレージ）に保存した値を返すように修正
+            return [PROP_NAME.ATK, PROP_NAME.CRIT_RATE, PROP_NAME.CRIT_DMG];
+        }
+
+        // スコアにして返す
+        function getScore(subPropName, subPropValue){
+            // 無効な項目
+            if(!getActivePropNames().includes(subPropName)){
+                return 0;
+            }
+            // 実数かパーセントか判断できない状態
+            const isRealOrPercent = [PROP_NAME.HP, PROP_NAME.ATK, PROP_NAME.DEF]
+                .includes(subPropName);
+            // 実数
+            if(isRealOrPercent && !subPropValue.includes('%')){
+                return 0;
+            }
+            subPropValue = subPropValue.replace(/[%+]/g, '').trim();
+            let score = 0;
+            switch (subPropName) {
+                // 攻撃、HP
+                case PROP_NAME.HP:
+                case PROP_NAME.ATK:
+                    score = subPropValue * 1.6;
+                // 会心ダメージ、 防御
+                case PROP_NAME.CRIT_DMG:
+                case PROP_NAME.DEF:
+                    score = subPropValue;
+                // 会心率
+                case PROP_NAME.CRIT_RATE:
+                    score = subPropValue * 2.0;
+                // 異常マスタリー
+                case PROP_NAME.ANOMALY_PROFICIENCY:
+                    score = (48.0/92.0) * subPropValue;
+            }
+            return Math.floor(score * 100) * 0.01;
+        }
         
         // 描画
         function draw(){
@@ -177,26 +225,32 @@ window.onload = () => {
             // とりあえず親にする要素
             const parentElement = document.querySelector('.equipment-info');
             const mainFrameElement = document.createElement('div');
+            let totalScores = 0;
             equipDriverList.forEach((equipDriver, index) => {
                 const driverScoreElement = document.createElement('div');
                 driverScoreElement.style.height = '20px';
-                console.log(`現在の中身は？${index}`);
-                console.dir(driverInfoList);
                 if (equipDriver) {
-                    console.log(index);
-                    console.dir(driverInfoList[index]);
-                    const driverObject = driverInfoList[index];
-                    console.log(driverObject);
-                    driverScoreElement.textContent = driverObject.mainPropName;
+                    const subPropNameAndValues = driverInfoList[index].subPropNameAndValues;
+                    let scores = 0
+                    subPropNameAndValues.forEach(subProp => {
+                        scores += getScore(subProp.name, subProp.value);
+                    });
+                    totalScores += scores;
+                    driverScoreElement.textContent = `ドライバー(${index + 1})のスコア:${scores.toFixed(2)}`;
                 } else {
-                    driverScoreElement.textContent = '空っぽ';
+                    driverScoreElement.textContent = `ドライバー(${index + 1})は空っぽ`;
                 }
                 driverScoreElement.style.color = 'white';
                 mainFrameElement.appendChild(driverScoreElement);
             });
+            // 合計
+            const driverScoreElement = document.createElement('div');
+            driverScoreElement.textContent = `ドライバーの合計スコア:${totalScores.toFixed(2)}`;
+            driverScoreElement.style.color = 'white';
+            mainFrameElement.appendChild(driverScoreElement);
+            // 生成
             parentElement.style.height = 'auto';
             parentElement.append(mainFrameElement);
-
 
 
             // キャラが変更されたら上記処理を再度行う
