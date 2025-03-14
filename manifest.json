@@ -1,0 +1,14 @@
+{
+    "content_scripts": [ {
+       "js": [ "content.js" ],
+       "matches": [ "https://act.hoyolab.com/app/zzz-game-record/index.html*" ],
+       "run_at": "document_start"
+    } ],
+    "description": "戦績画面で追加ステータスを基準にスコア計算をする拡張",
+    "manifest_version": 3,
+    "name": "ゼンレスゾーンゼロスコア計算機",
+    "short_name": "スコア計算機",
+    "version": "1.0.0",
+    "permissions": ["storage"]
+ }
+ 
