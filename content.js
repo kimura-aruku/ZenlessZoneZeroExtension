@@ -159,25 +159,29 @@ window.onload = () => {
             if(isRealOrPercent && !subPropValue.includes('%')){
                 return 0;
             }
-            subPropValue = subPropValue.replace(/[%+]/g, '').trim();
+            const subPropNumberValue = Number(subPropValue.replace(/[%]/g, '').trim());
             let score = 0;
             switch (subPropName) {
                 // 攻撃、HP
                 case PROP_NAME.HP:
                 case PROP_NAME.ATK:
-                    score = subPropValue * 1.6;
+                    score = subPropNumberValue * 1.6;
+                    break;
                 // 会心ダメージ、 防御
                 case PROP_NAME.CRIT_DMG:
                 case PROP_NAME.DEF:
-                    score = subPropValue;
+                    score = subPropNumberValue;
+                    break;
                 // 会心率
                 case PROP_NAME.CRIT_RATE:
-                    score = subPropValue * 2.0;
+                    score = subPropNumberValue * 2.0;
+                    break;
                 // 異常マスタリー
                 case PROP_NAME.ANOMALY_PROFICIENCY:
-                    score = (48.0/92.0) * subPropValue;
+                    score = (48.0/92.0) * subPropNumberValue;
+                    break;
             }
-            return Math.floor(score * 100) * 0.01;
+            return Math.floor(score * 100) / 100;
         }
         
         // 描画
@@ -199,6 +203,7 @@ window.onload = () => {
                     let scores = 0
                     subPropNameAndValues.forEach(subProp => {
                         scores += getScore(subProp.name, subProp.value);
+
                     });
                     totalScores += scores;
                     driverScoreElement.textContent = `ドライバー(${index + 1})のスコア:${scores.toFixed(2)}`;
