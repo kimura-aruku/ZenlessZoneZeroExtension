@@ -3,6 +3,7 @@
 window.onload = () => {
     const MY_CLASS = 'alk-element';
     const MY_OVERLAY_ID = 'alk-overlay';
+    const MY_CHECK_BOX_CLASS = 'alk-check-box';
     // 画面にチェックボックスを追加し、UID+キャラクターごとに追加ステータスを記憶する
     // 上記はchrome.storage.localで実現する
     // 最初に画面を開いたとき、キャラを切り替えたときに各ドライバをクリックして画面表示+ステータスをキャッシュ
@@ -143,7 +144,15 @@ window.onload = () => {
 
         function getActivePropNames(){
             // TODO: チェックボックス（ストレージ）に保存した値を返すように修正
-            return [PROP_NAME.ATK, PROP_NAME.CRIT_RATE, PROP_NAME.CRIT_DMG];
+            const checkedPropNames = [];
+            const propNames = Object.values(PROP_NAME);
+            propNames.forEach((value, index) => {
+                const checkbox = document.getElementById(`checkbox${index}`);
+                if (checkbox?.checked) {
+                    checkedPropNames.push(propNames[index]);
+                }
+            });
+            return checkedPropNames;
         }
 
         // スコアにして返す
@@ -183,9 +192,9 @@ window.onload = () => {
             }
             return Math.floor(score * 100) / 100;
         }
-        
-        // 描画
-        function draw(){
+
+        // スコア描画
+        function drawScore(){
             // 念のため削除
             document.querySelectorAll(`.${MY_CLASS}`)?.forEach(element => {
                 element.remove();
@@ -221,6 +230,45 @@ window.onload = () => {
             // 生成
             parentElement.style.height = 'auto';
             parentElement.append(mainFrameElement);
+        }
+
+        // 加算対象のチェックボックス描画
+        function drawConfig(){
+            // 念のため削除
+            document.querySelectorAll(`.${MY_CHECK_BOX_CLASS}`)?.forEach(element => {
+                element.remove();
+            });
+            // チェックボックスを6つ作成
+            const container = document.createElement('div');
+            const propNames = Object.values(PROP_NAME);
+            for (let i = 0; i < propNames.length; i++) {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `checkbox${i}`;
+                checkbox.classList.add(MY_CHECK_BOX_CLASS);
+                const label = document.createElement('label');
+                label.htmlFor = `checkbox${i}`;
+                label.textContent = propNames[i];
+                label.style.color = 'white';
+                container.appendChild(checkbox);
+                container.appendChild(label);
+                container.appendChild(document.createElement('br'));
+            }
+            // 仮の親
+            const parentElement = document.querySelector('.equipment-info');
+            parentElement.appendChild(container);
+
+            // すべてのチェックボックスにイベントリスナーを追加
+            for (let i = 0; i < propNames.length; i++) {
+                const checkbox = document.getElementById(`checkbox${i}`);
+                checkbox.addEventListener('change', drawScore);
+            }
+        }
+        
+        // 描画
+        function draw(){
+            drawConfig();
+            drawScore();
         }
     
         // 非同期処理を分離
@@ -275,9 +323,8 @@ window.onload = () => {
             // bg要素を取得できれば完了
             const validateEquipInfoElements = (els) => 
                 Array.from(els).some(el => el.querySelector('.bg'));
-            // ステータスにプラスがなく、かつセット効果がないなら装備なしとみなす
+            // セット効果がないなら装備なしとみなす
             const stopCondition = () => 
-                !!document.querySelector('.base-add-prop') && 
                 !!document.querySelector('.empty-content');
             // 上記条件でドライバ情報要素*6を取得
             const equipInfoElements = await waitForElements(
@@ -341,8 +388,6 @@ window.onload = () => {
             characterInfoElement = await waitForElement('.role-detail-container');
             // 変更監視開始
             setObservers();
-
-
             // 自作チェックボックスが変更されたら、計算処理だけ再度行う
 
         }
