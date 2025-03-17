@@ -142,8 +142,8 @@ window.onload = () => {
             ANOMALY_PROFICIENCY: '異常マスタリー'
         });
 
-        function getActivePropNames(){
-            // TODO: チェックボックス（ストレージ）に保存した値を返すように修正
+        // チェックが入ったステータス名を返す
+        function getActivePropNamesFromCheckboxes(){
             const checkedPropNames = [];
             const propNames = Object.values(PROP_NAME);
             propNames.forEach((value, index) => {
@@ -155,10 +155,32 @@ window.onload = () => {
             return checkedPropNames;
         }
 
+        // チェックボックスの情報を読み込み
+        function loadAndSetTargetPropNamesObject(){
+            const characterName = getCharacterName();
+            chrome.storage.local.get(characterName, (result) => {
+                if (chrome.runtime.lastError) {
+                    console.error("取得エラー:", chrome.runtime.lastError);
+                    return;
+                } else {
+                    setCheckboxesFromStorage(result[characterName]);
+                }
+            });
+        }
+
+        // 読み込んだ情報をチェックボックスに反映
+        function setCheckboxesFromStorage(targetPropNamesObject){
+            const keyAndValidations = Object.entries(targetPropNamesObject);
+            for (let keyAndValidity of keyAndValidations){
+                const targetCheckbox = document.querySelector(`.${MY_CHECK_BOX_CLASS}.${keyAndValidity[0]}`);
+                targetCheckbox.checked = !!keyAndValidity[1];
+            }
+        }
+
         // スコアにして返す
         function getScore(subPropName, subPropValue){
             // 無効な項目
-            if(!getActivePropNames().includes(subPropName)){
+            if(!getActivePropNamesFromCheckboxes().includes(subPropName)){
                 return 0;
             }
             // 実数かパーセントか判断できない状態
@@ -240,15 +262,17 @@ window.onload = () => {
             });
             // チェックボックスを6つ作成
             const container = document.createElement('div');
-            const propNames = Object.values(PROP_NAME);
-            for (let i = 0; i < propNames.length; i++) {
+            const propKeyAndNames = Object.entries(PROP_NAME);
+            for (let i = 0; i < propKeyAndNames.length; i++) {
+                const propKeyAndName = propKeyAndNames[i];
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.id = `checkbox${i}`;
                 checkbox.classList.add(MY_CHECK_BOX_CLASS);
+                checkbox.classList.add(`${propKeyAndName[0]}`);
                 const label = document.createElement('label');
                 label.htmlFor = `checkbox${i}`;
-                label.textContent = propNames[i];
+                label.textContent = propKeyAndName[1];
                 label.style.color = 'white';
                 container.appendChild(checkbox);
                 container.appendChild(label);
@@ -259,10 +283,40 @@ window.onload = () => {
             parentElement.appendChild(container);
 
             // すべてのチェックボックスにイベントリスナーを追加
-            for (let i = 0; i < propNames.length; i++) {
+            for (let i = 0; i < propKeyAndNames.length; i++) {
                 const checkbox = document.getElementById(`checkbox${i}`);
-                checkbox.addEventListener('change', drawScore);
+                checkbox.addEventListener('change', drawScoreAndSave);
             }
+        }
+
+        function getCharacterName(){
+            return document.querySelector('.nickname').textContent?.trim();
+        }
+
+        // チェックボックスの内容を保存
+        function saveTargetProp(){
+            const propKeyAndNames = Object.entries(PROP_NAME);
+            const activePropNames = getActivePropNamesFromCheckboxes();
+            const targetPropsObject = {};
+            for (let propKeyAndName of propKeyAndNames){
+                targetPropsObject[propKeyAndName[0]] = !!activePropNames.includes(propKeyAndName[1]);
+            }
+            const characterName = getCharacterName();
+            // キャラ名をキーにチェック状態を保存
+            chrome.storage.local.set({ [characterName]: targetPropsObject }, () => {
+                if (chrome.runtime.lastError) {
+                    console.error("保存エラー:", chrome.runtime.lastError);
+                } else {
+                    console.log(`${characterName} のデータを保存しました`, targetPropsObject);
+                }
+            });
+        }
+
+
+        function drawScoreAndSave(){
+            // 先にクラス分けしたいので一旦コメントアウト
+            // saveTargetProp();
+            drawScore();
         }
         
         // 描画
