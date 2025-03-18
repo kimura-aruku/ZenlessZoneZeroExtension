@@ -114,7 +114,7 @@ window.onload = () => {
             driverInfo.driverName = nameAndLevelElement[0].textContent.trim();
             driverInfo.driverRarityClassName = nameAndLevelElement[0].className;
             driverInfo.driverLevel = nameAndLevelElement[1].textContent.trim();
-            const mainNameAndValueElement = popupContentElement.querySelectorAll('.base-attrs span');
+            const mainNameAndValueElement = await waitForElements('.base-attrs span');
             driverInfo.mainPropName = mainNameAndValueElement[0].textContent.trim();
             driverInfo.mainPropValue = mainNameAndValueElement[1].textContent.trim();
             const supPropElements = popupContentElement.querySelectorAll('.upper-attrs div');
