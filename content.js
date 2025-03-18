@@ -107,14 +107,14 @@ window.onload = () => {
 
         // ドライバ情報のキャッシュ
         async function cacheDriverInfo(driverIndex){
-            const popupContentElement = await waitForElement('.popup-content', null);
+            const popupContentElement = await waitForElement('.role-detail-popup.equip-popup', null);
             const driverInfo = {};
             driverInfo.iconSource = popupContentElement.querySelector('img')?.getAttribute('src');
             const nameAndLevelElement = popupContentElement.querySelectorAll('p');
             driverInfo.driverName = nameAndLevelElement[0].textContent.trim();
             driverInfo.driverRarityClassName = nameAndLevelElement[0].className;
             driverInfo.driverLevel = nameAndLevelElement[1].textContent.trim();
-            const mainNameAndValueElement = await waitForElements('.base-attrs span');
+            const mainNameAndValueElement = popupContentElement.querySelectorAll('.base-attrs span');
             driverInfo.mainPropName = mainNameAndValueElement[0].textContent.trim();
             driverInfo.mainPropValue = mainNameAndValueElement[1].textContent.trim();
             const supPropElements = popupContentElement.querySelectorAll('.upper-attrs div');
@@ -353,23 +353,25 @@ window.onload = () => {
         }
 
         // 監視のコールバック
-        const callback = (mutationsList, observer) => {
-            for (let mutation of mutationsList) {
-                // キャラ選択
-                if(observer === characterInfoElementObserver 
-                    && mutation.type === 'attributes' && mutation.attributeName === 'style'
-                ){
-                    const oldStyle = mutation.oldValue || ''; 
-                    const newStyle = mutation.target.getAttribute('style') || '';
-                    // backgroundか変更されていればキャラを変更したとみなす
-                    const oldBackground = oldStyle.match(/background:[^;]+/);
-                    const newBackground = newStyle.match(/background:[^;]+/);
-                    if (oldBackground?.[0] !== newBackground?.[0]) {
-                        console.log('キャラが変更された');
-                        reDraw();
-                    }
-                } 
-            }
+        const callback = (mutationsList, observer) => {(
+            async () =>{
+                for (let mutation of mutationsList) {
+                    // キャラ選択
+                    if(observer === characterInfoElementObserver 
+                        && mutation.type === 'attributes' && mutation.attributeName === 'style'
+                    ){
+                        const oldStyle = mutation.oldValue || ''; 
+                        const newStyle = mutation.target.getAttribute('style') || '';
+                        // backgroundか変更されていればキャラを変更したとみなす
+                        const oldBackground = oldStyle.match(/background:[^;]+/);
+                        const newBackground = newStyle.match(/background:[^;]+/);
+                        if (oldBackground?.[0] !== newBackground?.[0]) {
+                            console.log('キャラが変更された');
+                            await reDraw();
+                        }
+                    } 
+                }
+            })();
         };
 
         // 画面を開いてドライバ情報を取得（終わったら戻る）
