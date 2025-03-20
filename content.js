@@ -285,10 +285,14 @@ window.onload = () => {
             // すべてのチェックボックスにイベントリスナーを追加
             for (let i = 0; i < propKeyAndNames.length; i++) {
                 const checkbox = document.getElementById(`checkbox${i}`);
-                checkbox.addEventListener('change', drawScoreAndSave);
+                checkbox.addEventListener('change', () => {
+                    // saveTargetProp();
+                    drawScore();
+                });
             }
         }
 
+        // キャラ名取得
         function getCharacterName(){
             return document.querySelector('.nickname').textContent?.trim();
         }
@@ -311,28 +315,15 @@ window.onload = () => {
                 }
             });
         }
-
-
-        function drawScoreAndSave(){
-            // 先にクラス分けしたいので一旦コメントアウト
-            // saveTargetProp();
-            drawScore();
-        }
         
-        // 描画
-        function draw(){
-            drawConfig();
-            drawScore();
-        }
-    
         // 非同期処理を分離
         async function reDraw() {
             const isValid = await tryCacheDriverInfoList();
             if(isValid){
-                draw();
+                drawConfig();
+                drawScore();
             }
         }
-    
             
         // 監視を再設定する関数
         function setObservers() {
@@ -452,7 +443,8 @@ window.onload = () => {
         async function firstDraw(){
             try {
                 await setup();
-                draw();
+                drawConfig();
+                drawScore();
             } catch (error) {
                 console.error('エラー:', error);
             }
