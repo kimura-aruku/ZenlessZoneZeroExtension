@@ -163,14 +163,13 @@ window.onload = () => {
                 if (chrome.runtime.lastError) {
                     console.error("取得エラー:", chrome.runtime.lastError);
                     return;
-                } else if(!result || !result[characterName]){
+                } 
+                if(!result || !result[characterName]){
                     onComplete();
                     return;
-                } else {
-                    setCheckboxesFromStorage(result[characterName]);
-                    onComplete();
-                    return;
-                }
+                } 
+                setCheckboxesFromStorage(result[characterName]);
+                onComplete();
             });
         }
 
