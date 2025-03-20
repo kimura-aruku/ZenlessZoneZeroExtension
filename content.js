@@ -133,6 +133,7 @@ window.onload = () => {
             popupContentElement.parentNode.querySelector('.close-icon').click();
         }
 
+        // ステータスのキーと名称
         const PROP_NAME = Object.freeze({
             HP: 'HP',
             ATK: '攻撃力',
@@ -156,14 +157,19 @@ window.onload = () => {
         }
 
         // チェックボックスの情報を読み込み
-        function loadAndSetTargetPropNamesObject(){
+        function loadAndSetTargetPropNamesObject(onComplete){
             const characterName = getCharacterName();
             chrome.storage.local.get(characterName, (result) => {
                 if (chrome.runtime.lastError) {
                     console.error("取得エラー:", chrome.runtime.lastError);
                     return;
+                } else if(!result || !result[characterName]){
+                    onComplete();
+                    return;
                 } else {
                     setCheckboxesFromStorage(result[characterName]);
+                    onComplete();
+                    return;
                 }
             });
         }
@@ -286,7 +292,7 @@ window.onload = () => {
             for (let i = 0; i < propKeyAndNames.length; i++) {
                 const checkbox = document.getElementById(`checkbox${i}`);
                 checkbox.addEventListener('change', () => {
-                    // saveTargetProp();
+                    saveTargetProp();
                     drawScore();
                 });
             }
@@ -321,7 +327,7 @@ window.onload = () => {
             const isValid = await tryCacheDriverInfoList();
             if(isValid){
                 drawConfig();
-                drawScore();
+                loadAndSetTargetPropNamesObject(drawScore);
             }
         }
             
@@ -444,7 +450,7 @@ window.onload = () => {
             try {
                 await setup();
                 drawConfig();
-                drawScore();
+                loadAndSetTargetPropNamesObject(drawScore);
             } catch (error) {
                 console.error('エラー:', error);
             }
