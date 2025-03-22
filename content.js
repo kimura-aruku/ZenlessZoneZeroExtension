@@ -230,37 +230,7 @@ window.onload = () => {
             const parentElement = document.querySelector('.equipment-info');
             const mainFrameElement = document.createElement('div');
             mainFrameElement.classList.add(MY_CLASS);
-            let totalScores = 0;
-            driverInfoList.forEach((driverInfo, index) => {
-                const driverScoreElement = document.createElement('div');
-                driverScoreElement.style.height = '20px';
-                if (driverInfo) {
-                    const subPropNameAndValues = driverInfo.subPropNameAndValues;
-                    let scores = 0
-                    subPropNameAndValues.forEach(subProp => {
-                        scores += getScore(subProp.name, subProp.value);
 
-                    });
-                    totalScores += scores;
-                    driverScoreElement.textContent = `ドライバー(${index + 1})のスコア:${scores.toFixed(2)}`;
-                } else {
-                    driverScoreElement.textContent = `ドライバー(${index + 1})は空っぽ`;
-                }
-                driverScoreElement.style.color = 'white';
-                mainFrameElement.appendChild(driverScoreElement);
-            });
-            // 合計
-            const driverScoreElement = document.createElement('div');
-            driverScoreElement.textContent = `ドライバーの合計スコア:${totalScores.toFixed(2)}`;
-            driverScoreElement.style.color = 'white';
-            mainFrameElement.appendChild(driverScoreElement);
-            // 生成
-            parentElement.style.height = 'auto';
-            parentElement.append(mainFrameElement);
-        }
-
-        function drawTest(){
-            
             const skillInfoUl = document.querySelector('.skill-info ul');
             const skillInfoChildUl = skillInfoUl.querySelector('li');
             const skillInfoContentUl = skillInfoChildUl.querySelector('div');
@@ -277,34 +247,56 @@ window.onload = () => {
             for (let property of allowedPropertiesForParent) {
                 copiedUl.style[property] = ulStyle.getPropertyValue(property);
             }
-            // 子要素にスタイルを適用
+            // 子要素用のスタイル
             const lis = copiedUl.querySelectorAll('li');
             const liStyle = window.getComputedStyle(skillInfoChildUl);
             const allowedPropertiesForChild = 
             ['height', 'width', 'padding', 'border', 'margin',
                 'align-items', 'color', 'display', 'border-radius', 'border', 'background'];
-                lis.forEach(li => {
-                    for (let property of allowedPropertiesForChild) {
-                        li.style[property] = liStyle.getPropertyValue(property);
-                    }
-                });
-            // 内容にスタイルを適用
+            // 内容用のスタイル
             const allowedPropertiesForContent = 
                 ['background', 'width', 'height', 'padding', 'border', 'margin', 'border-radius'];
-            lis.forEach(li => {
+            let totalScores = 0;
+            lis.forEach((li, index) => {
+                // 子要素にスタイル適用
+                for (let property of allowedPropertiesForChild) {
+                    li.style[property] = liStyle.getPropertyValue(property);
+                }
+                // 内容を作成
                 const content = document.createElement('div');
+                const driverInfo = driverInfoList[index];
+                content.style.color = 'white';
+                if (driverInfo) {
+                    const subPropNameAndValues = driverInfo.subPropNameAndValues;
+                    let scores = 0
+                    subPropNameAndValues.forEach(subProp => {
+                        scores += getScore(subProp.name, subProp.value);
+                    });
+                    totalScores += scores;
+                    content.textContent = `ドライバー(${index + 1})のスコア:${scores.toFixed(2)}`;
+                } else {
+                    content.textContent = `ドライバー(${index + 1})は空っぽ`;
+                }
+                // 内容にスタイルを適用
                 for (let property of allowedPropertiesForContent) {
                     content.style[property] = contentStyle.getPropertyValue(property);
                 }
                 li.appendChild(content);
             });
     
-            // とりあえず親にする要素
-            const parentElement = document.querySelector('.equipment-info');
-            parentElement.append(copiedUl);
+            mainFrameElement.append(copiedUl);
+
+            // 合計
+            const driverScoreElement = document.createElement('div');
+            driverScoreElement.textContent = `ドライバーの合計スコア:${totalScores.toFixed(2)}`;
+            driverScoreElement.style.color = 'white';
+            driverScoreElement.style.textAlign = 'right';
+            driverScoreElement.style.padding = copiedUl.style.padding;
+            mainFrameElement.prepend(driverScoreElement);
+            // 生成
+            parentElement.style.height = 'auto';
+            parentElement.append(mainFrameElement);
         }
-
-
 
 
         // 加算対象のチェックボックス描画
@@ -341,8 +333,6 @@ window.onload = () => {
                 checkbox.addEventListener('change', () => {
                     saveTargetProp();
                     drawScore();
-                    // test
-                    drawTest();
                 });
             }
         }
