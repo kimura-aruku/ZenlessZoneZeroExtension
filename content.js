@@ -259,6 +259,54 @@ window.onload = () => {
             parentElement.append(mainFrameElement);
         }
 
+        function drawTest(){
+            
+            const skillInfoUl = document.querySelector('.skill-info ul');
+            const skillInfoChildUl = skillInfoUl.querySelector('li');
+            const skillInfoContentUl = skillInfoChildUl.querySelector('div');
+            const copiedUl = skillInfoUl.cloneNode(true);
+            // 内容はスタイルのみ取得し削除
+            const contentStyle = window.getComputedStyle(skillInfoContentUl);
+            const divs = copiedUl.querySelectorAll('div');
+            divs.forEach(div => div.remove());
+            // 親にスタイルを適用
+            const ulStyle = window.getComputedStyle(skillInfoUl)
+            const allowedPropertiesForParent = 
+                ['height', 'padding', 'border', 'margin', 'box-sizing', 
+                        'align-items', 'color', 'display', 'gap', 'justify-content'];
+            for (let property of allowedPropertiesForParent) {
+                copiedUl.style[property] = ulStyle.getPropertyValue(property);
+            }
+            // 子要素にスタイルを適用
+            const lis = copiedUl.querySelectorAll('li');
+            const liStyle = window.getComputedStyle(skillInfoChildUl);
+            const allowedPropertiesForChild = 
+            ['height', 'width', 'padding', 'border', 'margin',
+                'align-items', 'color', 'display', 'border-radius', 'border', 'background'];
+                lis.forEach(li => {
+                    for (let property of allowedPropertiesForChild) {
+                        li.style[property] = liStyle.getPropertyValue(property);
+                    }
+                });
+            // 内容にスタイルを適用
+            const allowedPropertiesForContent = 
+                ['background', 'width', 'height', 'padding', 'border', 'margin', 'border-radius'];
+            lis.forEach(li => {
+                const content = document.createElement('div');
+                for (let property of allowedPropertiesForContent) {
+                    content.style[property] = contentStyle.getPropertyValue(property);
+                }
+                li.appendChild(content);
+            });
+    
+            // とりあえず親にする要素
+            const parentElement = document.querySelector('.equipment-info');
+            parentElement.append(copiedUl);
+        }
+
+
+
+
         // 加算対象のチェックボックス描画
         function drawConfig(){
             // 念のため削除
@@ -293,6 +341,8 @@ window.onload = () => {
                 checkbox.addEventListener('change', () => {
                     saveTargetProp();
                     drawScore();
+                    // test
+                    drawTest();
                 });
             }
         }
