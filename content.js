@@ -85,6 +85,22 @@ window.onload = () => {
         Object.assign(element.style, captionStyleObject);
     }
 
+    // オリジナルの項目ボタン用スタイルオブジェクト
+    /** @type {{ [key: string]: string }} */
+    let itemShapeStyleObject = {};
+    // キャッシュと適用
+    function cacheItemShapeStyleObject(targetElement){
+        // キャッシュ済み
+        if(Object.keys(itemShapeStyleObject).length > 0){
+            return;
+        }
+        const allowedProperties = ['border', 'background', 'border-radius', 'padding'];
+        itemShapeStyleObject = getOriginalStyleObject(targetElement, allowedProperties);
+    }
+    function applyOriginalItemShapeStyle(element){
+        Object.assign(element.style, itemShapeStyleObject);
+    }
+
     // 有効な項目用の色
     let activeItemColor;
     // 奇数行の背景色
@@ -153,10 +169,12 @@ window.onload = () => {
             const titleStyle = window.getComputedStyle(nameElement);
             driverInfo.driverBackgroundImage = titleStyle.backgroundImage;;
             driverInfo.driverLevel = levelElement.textContent.trim();
+            // メインステータス
             const mainNameAndValueElement = popupContentElement.querySelectorAll('.base-attrs span');
             cacheItemStyleObject(mainNameAndValueElement[1]);
             driverInfo.mainPropName = mainNameAndValueElement[0].textContent.trim();
             driverInfo.mainPropValue = mainNameAndValueElement[1].textContent.trim();
+            // サブステータス
             const supPropElements = popupContentElement.querySelectorAll('.upper-attrs div');
             const subPropNameAndValues = [];
             supPropElements.forEach(div => {
@@ -166,6 +184,7 @@ window.onload = () => {
                     subPropNameAndValue.name = spans[0].textContent.trim();
                     subPropNameAndValue.value = spans[1].textContent.trim();
                     subPropNameAndValues.push(subPropNameAndValue);
+                    cacheItemShapeStyleObject(spans[0].parentElement);
                 }
             });
             driverInfo.subPropNameAndValues = subPropNameAndValues;
@@ -189,7 +208,7 @@ window.onload = () => {
             const propNames = Object.values(PROP_NAME);
             propNames.forEach((value, index) => {
                 const checkbox = document.getElementById(`checkbox${index}`);
-                if (checkbox?.checked) {
+                if (checkbox?.getAttribute('data-checked') === 'true') {
                     checkedPropNames.push(propNames[index]);
                 }
             });
@@ -218,7 +237,8 @@ window.onload = () => {
             const keyAndValidations = Object.entries(targetPropNamesObject);
             for (let keyAndValidity of keyAndValidations){
                 const targetCheckbox = document.querySelector(`.${MY_CHECK_BOX_CLASS}.${keyAndValidity[0]}`);
-                targetCheckbox.checked = !!keyAndValidity[1];
+                const isChecked = !!keyAndValidity[1];
+                changeCheckbox(targetCheckbox, isChecked);
             }
         }
 
@@ -314,7 +334,7 @@ window.onload = () => {
             copiedUl.style.minHeight = copiedUl.style.height;
             copiedUl.style.width = 'auto';
             copiedUl.style.height = 'auto';
-            copiedUl.style.paddingBottom = '16px';
+            // copiedUl.style.paddingBottom = '16px';
             // 子要素用のスタイル
             const lis = copiedUl.querySelectorAll('li');
             const liStyle = window.getComputedStyle(skillInfoChildUl);
@@ -422,6 +442,10 @@ window.onload = () => {
                                 subPropNameElement.style.color = activeItemColor;
                                 subPropHitCountElement.style.color = activeItemColor;
                                 subPropValueElement.style.color = activeItemColor;
+                            }else{
+                                subPropNameElement.style.color = captionStyleObject['color'];
+                                subPropHitCountElement.style.color = captionStyleObject['color'];
+                                subPropValueElement.style.color = captionStyleObject['color'];
                             }
                             // ステータス名
                             subPropNameElement.textContent = subProp.name;
@@ -438,7 +462,7 @@ window.onload = () => {
                                     let red = rgbaMatch[1];
                                     let green = rgbaMatch[2];
                                     let blue = rgbaMatch[3];
-                                    let alpha = 0.12;
+                                    let alpha = 0.16;
                                     subPropHitCountElement.style.backgroundColor = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
                                 }
                                 subPropHitCountElement.style.marginLeft = '4px';
@@ -518,11 +542,18 @@ window.onload = () => {
             
             // 合計
             const driverScoreElement = document.createElement('div');
-            driverScoreElement.textContent = `ドライバーの合計スコア:${totalScores.toFixed(2)}`;
-            driverScoreElement.style.color = 'white';
-            driverScoreElement.style.textAlign = 'right';
-            driverScoreElement.style.padding = copiedUl.style.padding;
-            mainFrameElement.prepend(driverScoreElement);
+            driverScoreElement.textContent = `合計スコア:${totalScores.toFixed(2)}`;
+            applyOriginalTitleStyle(driverScoreElement);
+            // driverScoreElement.style.textAlign = 'right';
+            driverScoreElement.style.padding = '10px 0 24px 22px';
+            driverScoreElement.style.fontFamily = 'inpin hongmengti';
+            mainFrameElement.appendChild(driverScoreElement);
+        }
+
+        // チェックボックス変更（引数は次のチェック状態）
+        function changeCheckbox(checkboxElement, nextCheckedState){
+            checkboxElement.dataset.checked = (!!nextCheckedState).toString();
+            checkboxElement.style.color = nextCheckedState ? activeItemColor : captionStyleObject['color'];
         }
 
         // 加算対象のチェックボックス描画
@@ -533,34 +564,33 @@ window.onload = () => {
             });
             // チェックボックスを6つ作成
             const container = document.createElement('div');
+            // TODO:要素コピーした方がいい
+            container.style.display = 'flex';
+            container.style.columnGap = '5px';
+            container.style.padding = '0 0 8px 18px';
             const propKeyAndNames = Object.entries(PROP_NAME);
             for (let i = 0; i < propKeyAndNames.length; i++) {
                 const propKeyAndName = propKeyAndNames[i];
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.id = `checkbox${i}`;
-                checkbox.classList.add(MY_CHECK_BOX_CLASS);
-                checkbox.classList.add(`${propKeyAndName[0]}`);
-                const label = document.createElement('label');
-                label.htmlFor = `checkbox${i}`;
-                label.textContent = propKeyAndName[1];
-                label.style.color = 'white';
-                container.appendChild(checkbox);
-                container.appendChild(label);
-                container.appendChild(document.createElement('br'));
+                const span = document.createElement('span');
+                span.id = `checkbox${i}`;
+                span.classList.add(MY_CHECK_BOX_CLASS, `${propKeyAndName[0]}`);
+                span.textContent = propKeyAndName[1];
+                applyOriginalItemStyle(span);
+                applyOriginalItemShapeStyle(span);
+            
+                // クリックでオンオフ切り替え
+                span.addEventListener('click', () => {
+                    const isChecked = span.dataset.checked === 'true';
+                    changeCheckbox(span, !isChecked);
+                    saveTargetProp();
+                    drawScore();
+                });
+            
+                container.appendChild(span);
             }
             // 仮の親
             const parentElement = document.querySelector('.equipment-info');
             parentElement.appendChild(container);
-
-            // すべてのチェックボックスにイベントリスナーを追加
-            for (let i = 0; i < propKeyAndNames.length; i++) {
-                const checkbox = document.getElementById(`checkbox${i}`);
-                checkbox.addEventListener('change', () => {
-                    saveTargetProp();
-                    drawScore();
-                });
-            }
         }
 
         // キャラ名取得
