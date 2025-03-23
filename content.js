@@ -4,11 +4,6 @@ window.onload = () => {
     const MY_CLASS = 'alk-element';
     const MY_OVERLAY_ID = 'alk-overlay';
     const MY_CHECK_BOX_CLASS = 'alk-check-box';
-    // 画面にチェックボックスを追加し、UID+キャラクターごとに追加ステータスを記憶する
-    // 上記はchrome.storage.localで実現する
-    // 最初に画面を開いたとき、キャラを切り替えたときに各ドライバをクリックして画面表示+ステータスをキャッシュ
-    // 自作チェックボックスの内容で計算
-    // 自作チェックボックスが変更されたらキャッシュしたステータスで計算
     
     // ドライバ情報リスト
     /** @type {Array<{
@@ -31,29 +26,6 @@ window.onload = () => {
 
     // キャラ情報の監視オブジェクト
     let characterInfoElementObserver;
-
-    
-    // .property-info内のli内から、各ステータスのアイコンを取得し、キーで取得できるようにする
-    /** @type {{ [key: string]: string }} */
-    let iconPaths = {};
-    
-    // 装備次第で取得できない条件があるため保持
-    // ->色だけでいい
-    /** @type {{ [key: string]: string }} */
-    const highlightNumberStyle = {
-        'color' : 'rgb(181, 255, 0)',
-        'font-family' : 'inpin hongmengti',
-        'font-size' : '14px',
-        'text-align' : 'right',
-    };
-    
-    /** @type {{ [key: string]: string }} */
-    const normalNumberStyle = {
-        'color' : 'rgb(255, 255, 255)',
-        'font-family' : 'inpin hongmengti',
-        'font-size' : '14px',
-        'text-align' : 'right',
-    };
 
     // オリジナルのスタイル取得
     function getOriginalStyleObject(targetElement, allowedProperties){
@@ -139,7 +111,6 @@ window.onload = () => {
                         resolve(null);
                     }
                 });
-
                 // DOMの変更を監視
                 anyObserver.observe(document.body, options);
 
@@ -332,8 +303,8 @@ window.onload = () => {
             // 親にスタイルを適用
             const ulStyle = window.getComputedStyle(skillInfoUl)
             const allowedPropertiesForParent = 
-            ['height', 'padding', 'border', 'margin', 'box-sizing', 
-                'align-items', 'color', 'display', 'gap', 'justify-content'];
+                ['height', 'padding', 'border', 'margin', 'box-sizing', 
+                    'align-items', 'color', 'display', 'gap', 'justify-content'];
             for (let property of allowedPropertiesForParent) {
                 copiedUl.style[property] = ulStyle.getPropertyValue(property);
             }
@@ -348,8 +319,8 @@ window.onload = () => {
             const lis = copiedUl.querySelectorAll('li');
             const liStyle = window.getComputedStyle(skillInfoChildUl);
             const allowedPropertiesForChild = 
-            ['height', 'width', 'padding', 'border', 'margin', 'box-sizing', 
-                'color', 'display', 'border-radius', 'border', 'background'];
+                ['height', 'width', 'padding', 'border', 'margin', 'box-sizing', 
+                    'color', 'display', 'border-radius', 'border', 'background'];
             let totalScores = 0;
             for(let i = 0; i < lis.length; i++){
                 const li = lis[i];
@@ -553,7 +524,6 @@ window.onload = () => {
             driverScoreElement.style.padding = copiedUl.style.padding;
             mainFrameElement.prepend(driverScoreElement);
         }
-
 
         // 加算対象のチェックボックス描画
         function drawConfig(){
@@ -761,6 +731,5 @@ window.onload = () => {
             }
         }
     
-        console.log('拡張処理開始');
         firstDraw();
     };
