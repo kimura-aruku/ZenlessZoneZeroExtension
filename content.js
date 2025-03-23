@@ -55,7 +55,8 @@ window.onload = () => {
         'text-align' : 'right',
     };
 
-    function getOriginalStyleObject(targetElement){
+    // オリジナルのスタイル取得
+    function getOriginalStyleObject(targetElement, allowedProperties){
         const targetElementStyle = window.getComputedStyle(targetElement);
         const tempObject ={};
         for (let style of allowedProperties) {
@@ -67,21 +68,50 @@ window.onload = () => {
     // オリジナルのタイトルスタイルオブジェクト
     /** @type {{ [key: string]: string }} */
     let titleStyleObject = {};
-
+    // キャッシュと適用
     function cacheTitleStyleObject(targetElement){
-        const targetElementStyle = window.getComputedStyle(targetElement);
-        for (let style of allowedProperties) {
-            titleStyleObject[style] = targetElementStyle.getPropertyValue(style);
+        // キャッシュ済み
+        if(Object.keys(titleStyleObject).length > 0){
+            return;
         }
+        const allowedProperties = ['font-size', 'text-align', 'font-family', 'color', 'font-weight'];
+        titleStyleObject = getOriginalStyleObject(targetElement, allowedProperties);
+    }
+    function applyOriginalTitleStyle(element){
+        Object.assign(element.style, titleStyleObject);
     }
     
     // オリジナルの項目スタイルオブジェクト
     /** @type {{ [key: string]: string }} */
     let itemStyleObject = {};
+    // キャッシュと適用
+    function cacheItemStyleObject(targetElement){
+        // キャッシュ済み
+        if(Object.keys(itemStyleObject).length > 0){
+            return;
+        }
+        const allowedProperties = ['font-size', 'font-family', 'color', 'font-weight'];
+        itemStyleObject = getOriginalStyleObject(targetElement, allowedProperties);
+    }
+    function applyOriginalItemStyle(element){
+        Object.assign(element.style, itemStyleObject);
+    }
 
     // オリジナルの補足情報スタイルオブジェクト
     /** @type {{ [key: string]: string }} */
     let captionStyleObject = {};
+    // キャッシュと適用
+    function cacheCaptionStyleObject(targetElement){
+        // キャッシュ済み
+        if(Object.keys(captionStyleObject).length > 0){
+            return;
+        }
+        const allowedProperties = ['font-size', 'text-align', 'font-family', 'color', 'font-weight'];
+        captionStyleObject = getOriginalStyleObject(targetElement, allowedProperties);
+    }
+    function applyOriginalCaptionStyle(element){
+        Object.assign(element.style, captionStyleObject);
+    }
 
     // 有効な項目用の色
     let activeItemColor;
@@ -143,12 +173,17 @@ window.onload = () => {
             const driverInfo = {};
             driverInfo.iconSource = popupContentElement.querySelector('.popup-content img')?.getAttribute('src');
             const nameAndLevelElement = popupContentElement.querySelectorAll('.popup-content p');
-            driverInfo.driverName = nameAndLevelElement[0].textContent.trim();
+            const nameElement = nameAndLevelElement[0];
+            const levelElement = nameAndLevelElement[1];
+            cacheTitleStyleObject(nameElement);
+            cacheCaptionStyleObject(levelElement);
+            driverInfo.driverName = nameElement.textContent.trim();
             // 背景画像取得
-            const titleStyle = window.getComputedStyle(nameAndLevelElement[0]);
+            const titleStyle = window.getComputedStyle(nameElement);
             driverInfo.driverBackgroundImage = titleStyle.backgroundImage;;
-            driverInfo.driverLevel = nameAndLevelElement[1].textContent.trim();
+            driverInfo.driverLevel = levelElement.textContent.trim();
             const mainNameAndValueElement = popupContentElement.querySelectorAll('.base-attrs span');
+            cacheItemStyleObject(mainNameAndValueElement[1]);
             driverInfo.mainPropName = mainNameAndValueElement[0].textContent.trim();
             driverInfo.mainPropValue = mainNameAndValueElement[1].textContent.trim();
             const supPropElements = popupContentElement.querySelectorAll('.upper-attrs div');
@@ -319,6 +354,7 @@ window.onload = () => {
                         contentHeaderElement.appendChild(driverImageElement);
                         // タイトル部
                         const titleElement = document.createElement('div');
+                        applyOriginalTitleStyle(titleElement);
                         titleElement.style.marginLeft = '8px';
                         const titleNameElement = document.createElement('p');
                         // 文字数が長い場合でも最後の番号文字を表示するための加工
@@ -343,6 +379,7 @@ window.onload = () => {
                         titleElement.appendChild(titleNameElement);
                         // レベル部
                         const driverLevelElement = document.createElement('p');
+                        applyOriginalCaptionStyle(driverLevelElement);
                         driverLevelElement.textContent = driverInfo.driverLevel;
                         titleElement.appendChild(driverLevelElement);
                         contentHeaderElement.appendChild(titleElement);
@@ -358,21 +395,31 @@ window.onload = () => {
                             const subPropElement = document.createElement('div');
                             subPropElement.style.overflow = 'hidden';
                             subPropElement.style.whiteSpace = 'nowrap';
+                            subPropElement.style.padding = '4px 0';
                             // ステータス名
                             const subPropNameElement = document.createElement('span');
+                            applyOriginalItemStyle(subPropNameElement);
                             subPropNameElement.textContent = subProp.name;
                             subPropNameElement.style.float = 'left';
-
                             // 数値
                             const subPropValueElement = document.createElement('span');
+                            applyOriginalItemStyle(subPropValueElement);
                             subPropValueElement.textContent = subProp.value;
                             subPropValueElement.style.float = 'right';
                             // 生成
                             subPropElement.appendChild(subPropNameElement);
                             subPropElement.appendChild(subPropValueElement);
                             subPropListElement.appendChild(subPropElement);
-
-                            scores += getScore(subProp.name, subProp.value);
+                            // スコア
+                            const score = getScore(subProp.name, subProp.value)
+                            if(score > 0){
+                                subPropNameElement.style.color = activeItemColor;
+                                subPropValueElement.style.color = activeItemColor;
+                            }
+                            // subPropNameElement.style.border = '2px solid black';  // 枠線の設定
+                            // subPropNameElement.style.padding = '2px 5px';  // 枠と文字の間隔を調整
+                            // subPropNameElement.style.display = 'inline-block';  // inline 要素をブロック化して枠を適用
+                            scores += score;
                         });
                         totalScores += scores;
                         content.appendChild(contentHeaderElement);
@@ -380,9 +427,11 @@ window.onload = () => {
                         // 合計
                         const totalElement = document.createElement('div');
                         const totalNameElement = document.createElement('span');
+                        applyOriginalItemStyle(totalNameElement);
                         totalNameElement.textContent = 'スコア';
                         totalNameElement.style.float = 'left';
                         const totalValueElement = document.createElement('span');
+                        applyOriginalItemStyle(totalValueElement);
                         totalValueElement.textContent = scores.toFixed(2);
                         totalValueElement.style.float = 'right';
                         // 生成
@@ -530,9 +579,9 @@ window.onload = () => {
             // bg要素を取得できれば完了
             const validateEquipInfoElements = (els) => 
                 Array.from(els).some(el => el.querySelector('.bg'));
-            // セット効果がないなら装備なしとみなす
+            // キャラが表示されているのにセット効果がないなら装備なしとみなす
             const stopCondition = () => 
-                !!document.querySelector('.empty-content');
+                (document.querySelector('.empty-content') && document.querySelector('role-avatar-container img')?.src);
             // 上記条件でドライバ情報要素*6を取得
             const equipInfoElements = await waitForElements(
                 '.equip-info', 
@@ -591,12 +640,20 @@ window.onload = () => {
         // 最初に実行
         async function setup(){
             // ドライバ情報取得
-            await tryCacheDriverInfoList();
+            const isSuccess = await tryCacheDriverInfoList();
+            if(isSuccess){
+                const baseAddPropElement = document.querySelector('.base-add-prop');
+                console.log(baseAddPropElement);
+                const spanElements = baseAddPropElement.querySelectorAll('span');
+                console.log(spanElements);
+                activeItemColor = getComputedStyle(spanElements[1]).color;
+                console.log(activeItemColor);
+            }else{
+                console.log('結果がfalse');
+            }
             characterInfoElement = await waitForElement('.role-detail-container');
             // 変更監視開始
             setObservers();
-            // 自作チェックボックスが変更されたら、計算処理だけ再度行う
-
         }
     
         // スコア要素作成
