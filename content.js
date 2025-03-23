@@ -252,41 +252,60 @@ window.onload = () => {
         }
 
         // スコアにして返す
-        function getScore(subPropName, subPropValue){
-            // 無効な項目
-            if(!getActivePropNamesFromCheckboxes().includes(subPropName)){
-                return 0;
-            }
+        function getScoreAndHitCount(subPropName, subPropValue){
             // 実数かパーセントか判断できない状態
-            const isRealOrPercent = [PROP_NAME.HP, PROP_NAME.ATK, PROP_NAME.DEF]
+            const isRealOrPercent = [PROP_NAME.HP, PROP_NAME.ATK, PROP_NAME.DEF, '貫通値']
                 .includes(subPropName);
             // 実数
             if(isRealOrPercent && !subPropValue.includes('%')){
-                return 0;
+                const subPropNumberValue = Number(subPropValue.trim());
+                switch(subPropName){
+                    case PROP_NAME.HP:
+                        return {score:0, hitCount: Math.round(
+                            subPropNumberValue / 112.0)-1};
+                    case PROP_NAME.ATK:
+                        return {score:0, hitCount: Math.round(
+                            subPropNumberValue / 19.0)-1};
+                    case PROP_NAME.DEF:
+                        return {score:0, hitCount: Math.round(
+                            subPropNumberValue / 15.0)-1};
+                    case '貫通値':
+                        return {score:0, hitCount: Math.round(
+                            subPropNumberValue / 9.0)-1};
+                }
             }
             const subPropNumberValue = Number(subPropValue.replace(/[%]/g, '').trim());
             let score = 0;
+            let hitCount = 0;
             switch (subPropName) {
                 // 攻撃、HP
                 case PROP_NAME.HP:
                 case PROP_NAME.ATK:
                     score = subPropNumberValue * 1.6;
+                    hitCount = subPropNumberValue / 3.0;
                     break;
                 // 会心ダメージ、 防御
                 case PROP_NAME.CRIT_DMG:
                 case PROP_NAME.DEF:
                     score = subPropNumberValue;
+                    hitCount = subPropNumberValue / 4.8;
                     break;
                 // 会心率
                 case PROP_NAME.CRIT_RATE:
                     score = subPropNumberValue * 2.0;
+                    hitCount = subPropNumberValue / 2.4;
                     break;
                 // 異常マスタリー
                 case PROP_NAME.ANOMALY_PROFICIENCY:
                     score = (48.0/92.0) * subPropNumberValue;
+                    hitCount = subPropNumberValue / 9.0;
                     break;
             }
-            return Math.floor(score * 100) / 100;
+            // 無効な項目
+            if(!getActivePropNamesFromCheckboxes().includes(subPropName)){
+                score = 0;
+            }
+            return {score:Math.floor(score * 100) * 0.01, hitCount: Math.round(hitCount)-1};
         }
 
         // スコア描画
@@ -351,7 +370,6 @@ window.onload = () => {
                 content.style.height = 'auto';
                 const driverInfo = driverInfoList[i];
                 if (driverInfo) {
-                    console.log('内容作成開始');
                     // ヘッダー：アイコン,タイトル,レベル
                     const contentHeaderElement = document.createElement('div');
                     contentHeaderElement.classList.add('alk-driver-content');
@@ -412,36 +430,55 @@ window.onload = () => {
                             const subPropElement = document.createElement('div');
                             subPropElement.style.overflow = 'hidden';
                             subPropElement.style.whiteSpace = 'nowrap';
-                            subPropElement.style.padding = '4px 6px';
+                            subPropElement.style.padding = '6px 6px';
                             if(j % 2 == 0){
                                 subPropElement.style.backgroundColor = evenRowBackgroundColor;
                             }else{
                                 subPropElement.style.backgroundColor = oddRowBackgroundColor;
                             }
-                            // ステータス名
+                            // スコア
+                            const ScoreAndHitCount = getScoreAndHitCount(subProp.name, subProp.value)
+                            scores += ScoreAndHitCount.score;
+                            // 各要素を作成
                             const subPropNameElement = document.createElement('span');
                             applyOriginalItemStyle(subPropNameElement);
-                            subPropNameElement.textContent = subProp.name;
-                            subPropNameElement.style.float = 'left';
-                            // 数値
+                            const subPropHitCountElement = document.createElement('span');
+                            applyOriginalItemStyle(subPropHitCountElement);
                             const subPropValueElement = document.createElement('span');
                             applyOriginalItemStyle(subPropValueElement);
-                            subPropValueElement.textContent = subProp.value;
-                            subPropValueElement.style.float = 'right';
-                            // スコア
-                            const score = getScore(subProp.name, subProp.value)
-                            if(score > 0){
+                            // 強調表示
+                            if(ScoreAndHitCount && ScoreAndHitCount.score > 0){
                                 subPropNameElement.style.color = activeItemColor;
+                                subPropHitCountElement.style.color = activeItemColor;
                                 subPropValueElement.style.color = activeItemColor;
                             }
-                            // subPropNameElement.style.border = '2px solid black';  // 枠線の設定
-                            // subPropNameElement.style.padding = '2px 5px';  // 枠と文字の間隔を調整
-                            // subPropNameElement.style.display = 'inline-block';  // inline 要素をブロック化して枠を適用
-                            // 生成
+                            // ステータス名
+                            subPropNameElement.textContent = subProp.name;
+                            subPropNameElement.style.float = 'left';
                             subPropElement.appendChild(subPropNameElement);
+                            // ヒット回数
+                            if(ScoreAndHitCount && ScoreAndHitCount.hitCount > 0){
+                                subPropHitCountElement.textContent = ScoreAndHitCount.hitCount.toFixed(0);
+                                subPropHitCountElement.style.float = 'left';
+                                // 背景色設定
+                                let currentColor = subPropHitCountElement.style.color;
+                                let rgbaMatch = currentColor.match(/rgba?\((\d+), (\d+), (\d+)(?:, (\d+(\.\d+)?))?\)/);
+                                if (rgbaMatch) {
+                                    let red = rgbaMatch[1];
+                                    let green = rgbaMatch[2];
+                                    let blue = rgbaMatch[3];
+                                    let alpha = 0.12;
+                                    subPropHitCountElement.style.backgroundColor = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+                                }
+                                subPropHitCountElement.style.marginLeft = '4px';
+                                subPropHitCountElement.style.padding = '0 2px';
+                                subPropElement.appendChild(subPropHitCountElement);
+                            }
+                            // 数値
+                            subPropValueElement.textContent = subProp.value;
+                            subPropValueElement.style.float = 'right';
                             subPropElement.appendChild(subPropValueElement);
                             subPropListElement.appendChild(subPropElement);
-                            scores += score;
                         }
                         // 空行
                         else{
