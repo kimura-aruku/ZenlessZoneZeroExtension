@@ -115,10 +115,10 @@ window.onload = () => {
 
     // 有効な項目用の色
     let activeItemColor;
-
-
-    const oddRowBackgroundColor = 'rgb(19, 19, 19)';
-    const evenRowBackgroundColor = 'rgb(42, 42, 42)';
+    // 奇数行の背景色
+    let oddRowBackgroundColor;
+    // 偶数業の背景色
+    let evenRowBackgroundColor;
     
     function waitForElementsInternal(selector, isSingleElement = true, 
         validate = (el) => !!el, 
@@ -306,7 +306,6 @@ window.onload = () => {
             const skillInfoChildUl = skillInfoUl.querySelector('.skill-item');
             const skillInfoContentUl = skillInfoChildUl.querySelector('div');
             const copiedUl = skillInfoUl.cloneNode(true);
-            copiedUl.className = '';
             // 内容はスタイルのみ取得し削除
             const contentStyle = window.getComputedStyle(skillInfoContentUl);
             const divs = copiedUl.querySelectorAll('div');
@@ -314,88 +313,111 @@ window.onload = () => {
             // 親にスタイルを適用
             const ulStyle = window.getComputedStyle(skillInfoUl)
             const allowedPropertiesForParent = 
-                ['height', 'padding', 'border', 'margin', 'box-sizing', 
-                        'align-items', 'color', 'display', 'gap', 'justify-content'];
+            ['height', 'padding', 'border', 'margin', 'box-sizing', 
+                'align-items', 'color', 'display', 'gap', 'justify-content'];
             for (let property of allowedPropertiesForParent) {
                 copiedUl.style[property] = ulStyle.getPropertyValue(property);
             }
+            // クラスとサイズを改変
+            copiedUl.className = '';
+            copiedUl.style.minWidth = copiedUl.style.width;
+            copiedUl.style.minHeight = copiedUl.style.height;
+            copiedUl.style.width = 'auto';
+            copiedUl.style.height = 'auto';
+            copiedUl.style.paddingBottom = '16px';
             // 子要素用のスタイル
             const lis = copiedUl.querySelectorAll('li');
             const liStyle = window.getComputedStyle(skillInfoChildUl);
             const allowedPropertiesForChild = 
-            ['height', 'width', 'padding', 'border', 'margin',
-                'align-items', 'color', 'display', 'border-radius', 'border', 'background'];
-                let totalScores = 0;
-                for(let index = 0; index < lis.length; index++){
-                    const li = lis[index];
-                    li.className = '';
-                    // 子要素にスタイル適用
-                    for (let property of allowedPropertiesForChild) {
-                        li.style[property] = liStyle.getPropertyValue(property);
+            ['height', 'width', 'padding', 'border', 'margin', 'box-sizing', 
+                'color', 'display', 'border-radius', 'border', 'background'];
+            let totalScores = 0;
+            for(let i = 0; i < lis.length; i++){
+                const li = lis[i];
+                // 子要素にスタイル適用
+                for (let property of allowedPropertiesForChild) {
+                    li.style[property] = liStyle.getPropertyValue(property);
+                }
+                // クラスとサイズを改変
+                li.className = '';
+                li.style.minWidth = li.style.width;
+                li.style.minHeight = li.style.height;
+                li.style.width = 'auto';
+                li.style.height = 'auto';
+                li.style.alignItems = 'flex-start';
+                // 内容を作成
+                const content = document.createElement('div');
+                content.style.width = 'auto';
+                content.style.height = 'auto';
+                const driverInfo = driverInfoList[i];
+                if (driverInfo) {
+                    console.log('内容作成開始');
+                    // ヘッダー：アイコン,タイトル,レベル
+                    const contentHeaderElement = document.createElement('div');
+                    contentHeaderElement.classList.add('alk-driver-content');
+                    contentHeaderElement.style.display = 'flex';
+                    contentHeaderElement.style.padding = '6px 6px 6px 6px';
+                    // ドライバ画像
+                    const driverImageElement = document.createElement('img');
+                    driverImageElement.src = driverInfo.iconSource;
+                    const originalLi = skillInfoUl.querySelector('li');
+                    const parentWidth = originalLi.offsetWidth;
+                    const imageWidth = parentWidth * 0.15;
+                    driverImageElement.style.width = `${imageWidth}px`;
+                    driverImageElement.style.height = `${imageWidth}px`;
+                    contentHeaderElement.appendChild(driverImageElement);
+                    // タイトル部
+                    const titleElement = document.createElement('div');
+                    applyOriginalTitleStyle(titleElement);
+                    titleElement.style.marginLeft = '8px';
+                    const titleNameElement = document.createElement('p');
+                    // 文字数が長い場合でも最後の番号文字を表示するための加工
+                    const driverName = driverInfo.driverName;
+                    if (driverName.length >= 9) {
+                        titleNameElement.textContent = driverName.slice(0, 4) + '…' + driverName.slice(-3);
+                    }else{
+                        titleNameElement.textContent = driverInfo.driverName;
                     }
-                    // 内容を作成
-                    const content = document.createElement('div');
-                    const driverInfo = driverInfoList[index];
-                    content.style.color = 'white';
-                    if (driverInfo) {
-                        console.log('内容作成開始');
-                        // ヘッダー：アイコン,タイトル,レベル
-                        const contentHeaderElement = document.createElement('div');
-                        contentHeaderElement.classList.add('alk-driver-content');
-                        contentHeaderElement.style.display = 'flex';
-                        // ドライバ画像
-                        const driverImageElement = document.createElement('img');
-                        driverImageElement.src = driverInfo.iconSource;
-                        const originalLi = skillInfoUl.querySelector('li');
-                        const parentWidth = originalLi.offsetWidth;
-                        const imageWidth = parentWidth * 0.15;
-                        driverImageElement.style.width = `${imageWidth}px`;
-                        driverImageElement.style.height = `${imageWidth}px`;
-                        contentHeaderElement.appendChild(driverImageElement);
-                        // タイトル部
-                        const titleElement = document.createElement('div');
-                        applyOriginalTitleStyle(titleElement);
-                        titleElement.style.marginLeft = '8px';
-                        const titleNameElement = document.createElement('p');
-                        // 文字数が長い場合でも最後の番号文字を表示するための加工
-                        const driverName = driverInfo.driverName;
-                        if (driverName.length >= 9) {
-                            titleNameElement.textContent = driverName.slice(0, 4) + '…' + driverName.slice(-3);
-                        }else{
-                            titleNameElement.textContent = driverInfo.driverName;
-                        }
-                        titleNameElement.style.overflow = 'hidden';
-                        titleNameElement.style.whiteSpace = 'nowrap';
-                        titleNameElement.style.paddingRight = '20px';
-                        titleNameElement.style.fontSize = '12px';
-                        // タイトル背景画像
-                        if(driverInfo.driverBackgroundImage){
-                            titleNameElement.style.backgroundImage = driverInfo.driverBackgroundImage;
-                            titleNameElement.style.backgroundPosition = 'right center';
-                            titleNameElement.style.backgroundRepeat = 'no-repeat';
-                            titleNameElement.style.backgroundOrigin = 'padding-box';
-                            titleNameElement.style.backgroundSize = 'contain';
-                        }
-                        titleElement.appendChild(titleNameElement);
-                        // レベル部
-                        const driverLevelElement = document.createElement('p');
-                        applyOriginalCaptionStyle(driverLevelElement);
-                        driverLevelElement.textContent = driverInfo.driverLevel;
-                        titleElement.appendChild(driverLevelElement);
-                        contentHeaderElement.appendChild(titleElement);
-                        // サブステータス
-                        const subPropListElement = document.createElement('div');
-                        subPropListElement.style.display = 'flex';
-                        subPropListElement.style.flexDirection = 'column';
-                        subPropListElement.style.overflow = 'hidden';
-                        subPropListElement.style.whiteSpace = 'nowrap';
-                        const subPropNameAndValues = driverInfo.subPropNameAndValues;
-                        let scores = 0
-                        subPropNameAndValues.forEach(subProp => {
+                    titleNameElement.style.overflow = 'hidden';
+                    titleNameElement.style.whiteSpace = 'nowrap';
+                    titleNameElement.style.paddingRight = '20px';
+                    titleNameElement.style.fontSize = '12px';
+                    // タイトル背景画像
+                    if(driverInfo.driverBackgroundImage){
+                        titleNameElement.style.backgroundImage = driverInfo.driverBackgroundImage;
+                        titleNameElement.style.backgroundPosition = 'right center';
+                        titleNameElement.style.backgroundRepeat = 'no-repeat';
+                        titleNameElement.style.backgroundOrigin = 'padding-box';
+                        titleNameElement.style.backgroundSize = 'contain';
+                    }
+                    titleElement.appendChild(titleNameElement);
+                    // レベル部
+                    const driverLevelElement = document.createElement('p');
+                    applyOriginalCaptionStyle(driverLevelElement);
+                    driverLevelElement.textContent = driverInfo.driverLevel;
+                    titleElement.appendChild(driverLevelElement);
+                    contentHeaderElement.appendChild(titleElement);
+                    // サブステータス
+                    const subPropListElement = document.createElement('div');
+                    subPropListElement.style.display = 'flex';
+                    subPropListElement.style.flexDirection = 'column';
+                    subPropListElement.style.overflow = 'hidden';
+                    subPropListElement.style.whiteSpace = 'nowrap';
+                    const subPropNameAndValues = driverInfo.subPropNameAndValues;
+                    let scores = 0
+                    // 空行も作るため4つ固定
+                    for(let j = 0; j < 4; j++){
+                        subProp = subPropNameAndValues[j];
+                        if(subProp){
                             const subPropElement = document.createElement('div');
                             subPropElement.style.overflow = 'hidden';
                             subPropElement.style.whiteSpace = 'nowrap';
-                            subPropElement.style.padding = '4px 0';
+                            subPropElement.style.padding = '4px 6px';
+                            if(j % 2 == 0){
+                                subPropElement.style.backgroundColor = evenRowBackgroundColor;
+                            }else{
+                                subPropElement.style.backgroundColor = oddRowBackgroundColor;
+                            }
                             // ステータス名
                             const subPropNameElement = document.createElement('span');
                             applyOriginalItemStyle(subPropNameElement);
@@ -406,10 +428,6 @@ window.onload = () => {
                             applyOriginalItemStyle(subPropValueElement);
                             subPropValueElement.textContent = subProp.value;
                             subPropValueElement.style.float = 'right';
-                            // 生成
-                            subPropElement.appendChild(subPropNameElement);
-                            subPropElement.appendChild(subPropValueElement);
-                            subPropListElement.appendChild(subPropElement);
                             // スコア
                             const score = getScore(subProp.name, subProp.value)
                             if(score > 0){
@@ -419,37 +437,74 @@ window.onload = () => {
                             // subPropNameElement.style.border = '2px solid black';  // 枠線の設定
                             // subPropNameElement.style.padding = '2px 5px';  // 枠と文字の間隔を調整
                             // subPropNameElement.style.display = 'inline-block';  // inline 要素をブロック化して枠を適用
+                            // 生成
+                            subPropElement.appendChild(subPropNameElement);
+                            subPropElement.appendChild(subPropValueElement);
+                            subPropListElement.appendChild(subPropElement);
                             scores += score;
-                        });
-                        totalScores += scores;
-                        content.appendChild(contentHeaderElement);
-                        content.appendChild(subPropListElement);
-                        // 合計
-                        const totalElement = document.createElement('div');
-                        const totalNameElement = document.createElement('span');
-                        applyOriginalItemStyle(totalNameElement);
-                        totalNameElement.textContent = 'スコア';
-                        totalNameElement.style.float = 'left';
-                        const totalValueElement = document.createElement('span');
-                        applyOriginalItemStyle(totalValueElement);
-                        totalValueElement.textContent = scores.toFixed(2);
-                        totalValueElement.style.float = 'right';
-                        // 生成
-                        totalElement.appendChild(totalNameElement);
-                        totalElement.appendChild(totalValueElement);
-                        content.appendChild(totalElement);
-                    } else {
-                        // content.textContent = `ドライバー(${index + 1})は空っぽ`;
+                        }
+                        // 空行
+                        else{
+                            const subPropElement = document.createElement('div');
+                            subPropElement.style.overflow = 'hidden';
+                            subPropElement.style.whiteSpace = 'nowrap';
+                            subPropElement.style.padding = '4px 6px';
+                            if(j % 2 == 0){
+                                subPropElement.style.backgroundColor = evenRowBackgroundColor;
+                            }else{
+                                subPropElement.style.backgroundColor = oddRowBackgroundColor;
+                            }
+                            // ステータス名
+                            const subPropNameElement = document.createElement('span');
+                            applyOriginalItemStyle(subPropNameElement);
+                            subPropNameElement.textContent = '-';
+                            subPropNameElement.style.float = 'left';
+                            // 数値
+                            const subPropValueElement = document.createElement('span');
+                            applyOriginalItemStyle(subPropValueElement);
+                            subPropValueElement.textContent = '-';
+                            subPropValueElement.style.float = 'right';
+                            // 生成
+                            subPropElement.appendChild(subPropNameElement);
+                            subPropElement.appendChild(subPropValueElement);
+                            subPropListElement.appendChild(subPropElement);
+                        }
                     }
-                    // 内容にスタイルを適用
-                    const allowedPropertiesForContent = 
-                        ['background', 'width', 'height', 'border', 'margin', 'border-radius'];
-                    for (let property of allowedPropertiesForContent) {
-                        content.style[property] = contentStyle.getPropertyValue(property);
-                    }
-                    content.style.padding = '6px 6px 6px 6px';
-                    li.appendChild(content);
+                    // 合計
+                    totalScores += scores;
+                    const totalElement = document.createElement('div');
+                    totalElement.style.backgroundColor = evenRowBackgroundColor;
+                    const totalNameElement = document.createElement('span');
+                    applyOriginalItemStyle(totalNameElement);
+                    totalNameElement.textContent = 'スコア';
+                    totalNameElement.style.float = 'left';
+                    const totalValueElement = document.createElement('span');
+                    applyOriginalItemStyle(totalValueElement);
+                    totalValueElement.textContent = scores.toFixed(2);
+                    totalValueElement.style.float = 'right';
+                    totalElement.style.padding = '12px 6px 8px 6px';
+                    subPropListElement.appendChild(totalElement);
+
+                    content.appendChild(contentHeaderElement);
+                    content.appendChild(subPropListElement);
+                    // 生成
+                    totalElement.appendChild(totalNameElement);
+                    totalElement.appendChild(totalValueElement);
+                } 
+                // 未装備のドライバ欄
+                else {
+                    // content.textContent = `ドライバー(${index + 1})は空っぽ`;
                 }
+                // 内容にスタイルを適用
+                const allowedPropertiesForContent = 
+                    ['background', 'border', 'margin', 'border-radius'];
+                for (let property of allowedPropertiesForContent) {
+                    content.style[property] = contentStyle.getPropertyValue(property);
+                    // ボーダーが被って消えるのを防ぐ
+                    content.style.overflow = 'hidden';
+                }
+                li.appendChild(content);
+            }
             mainFrameElement.append(copiedUl);
             parentElement.append(mainFrameElement);
             
@@ -642,14 +697,16 @@ window.onload = () => {
             // ドライバ情報取得
             const isSuccess = await tryCacheDriverInfoList();
             if(isSuccess){
-                const baseAddPropElement = document.querySelector('.base-add-prop');
-                console.log(baseAddPropElement);
+                // 色のキャッシュ
+                const propertyInfoElement = document.querySelector('.property-info');
+                // 奇数行、偶数行の背景色
+                const propElements = propertyInfoElement.querySelectorAll('li');
+                oddRowBackgroundColor = getComputedStyle(propElements[0]).backgroundColor;
+                evenRowBackgroundColor = getComputedStyle(propElements[1]).backgroundColor;
+                // 強調色
+                const baseAddPropElement = propertyInfoElement.querySelector('.base-add-prop');
                 const spanElements = baseAddPropElement.querySelectorAll('span');
-                console.log(spanElements);
                 activeItemColor = getComputedStyle(spanElements[1]).color;
-                console.log(activeItemColor);
-            }else{
-                console.log('結果がfalse');
             }
             characterInfoElement = await waitForElement('.role-detail-container');
             // 変更監視開始
