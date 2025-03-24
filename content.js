@@ -593,13 +593,24 @@ window.onload = () => {
             parentElement.append(mainFrameElement);
             
             // 合計
-            // チェックボックスを6つ作成
+            // チェックボックスのグループを親にする
             const checkboxParent = document.querySelector(`.${MY_CHECK_BOX_CONTAINER_CLASS}`);
+            const totalScoreLabelElement = document.createElement('span');
+            totalScoreLabelElement.classList.add(MY_CLASS);
+            totalScoreLabelElement.textContent = '合計スコア';
+            applyOriginalTitleStyle(totalScoreLabelElement);
+            totalScoreLabelElement.style.float = 'right';
+            totalScoreLabelElement.style.textAlign = 'right';
+            totalScoreLabelElement.style.marginLeft  = 'auto';
+            totalScoreLabelElement.style.position = 'absolute';
+            totalScoreLabelElement.style.right = '10%';
+            // totalScoreLabelElement.style.paddingRight = '22px';
+            totalScoreLabelElement.style.fontFamily = 'inpin hongmengti';
+            checkboxParent.appendChild(totalScoreLabelElement);
+
             const driverScoreElement = document.createElement('span');
             driverScoreElement.classList.add(MY_CLASS);
-            
-            // const driverScoreElement = document.createElement('div');
-            driverScoreElement.textContent = `合計スコア: ${totalScores.toFixed(2)}`;
+            driverScoreElement.textContent = `${totalScores.toFixed(2)}`;
             applyOriginalTitleStyle(driverScoreElement);
             driverScoreElement.style.float = 'right';
             driverScoreElement.style.textAlign = 'right';
@@ -607,10 +618,7 @@ window.onload = () => {
             driverScoreElement.style.position = 'absolute';
             driverScoreElement.style.right = '0';
             driverScoreElement.style.paddingRight = '22px';
-            
-            // driverScoreElement.style.padding = '10px 0 24px 22px';
             driverScoreElement.style.fontFamily = 'inpin hongmengti';
-            // mainFrameElement.appendChild(driverScoreElement);
             checkboxParent.appendChild(driverScoreElement);
         }
 
