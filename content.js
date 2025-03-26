@@ -620,7 +620,6 @@ window.onload = () => {
                     saveTargetProp();
                     drawScore();
                 });
-            
                 container.appendChild(span);
             }
             // 仮の親
@@ -693,7 +692,6 @@ window.onload = () => {
                         const oldBackground = oldStyle.match(/background:[^;]+/);
                         const newBackground = newStyle.match(/background:[^;]+/);
                         if (oldBackground?.[0] !== newBackground?.[0]) {
-                            console.log('キャラが変更された');
                             await reDraw();
                         }
                     } 
@@ -771,10 +769,6 @@ window.onload = () => {
             if(isSuccess){
                 // 色のキャッシュ
                 const propertyInfoElement = document.querySelector('.property-info');
-                // 奇数行、偶数行の背景色
-                const propElements = propertyInfoElement.querySelectorAll('li');
-                oddRowBackgroundColor = getComputedStyle(propElements[0]).backgroundColor;
-                evenRowBackgroundColor = getComputedStyle(propElements[1]).backgroundColor;
                 // 強調色
                 const baseAddPropElement = propertyInfoElement.querySelector('.base-add-prop');
                 const spanElements = baseAddPropElement.querySelectorAll('span');
@@ -782,9 +776,6 @@ window.onload = () => {
                 // ヘッダ背景色
                 const headerElement = document.querySelector('.equipment-info h2');
                 headerBackgroundColor = getComputedStyle(headerElement).backgroundColor;
-                // セット効果背景色
-                const setsElement = document.querySelector('.suit-effects ul');
-                setsBackgroundColor = getComputedStyle(setsElement).backgroundColor;
             }
             characterInfoElement = await waitForElement('.role-detail-container');
             // 変更監視開始
