@@ -603,7 +603,7 @@ window.onload = () => {
             totalScoreLabelElement.style.textAlign = 'right';
             totalScoreLabelElement.style.marginLeft  = 'auto';
             totalScoreLabelElement.style.position = 'absolute';
-            totalScoreLabelElement.style.right = '10%';
+            totalScoreLabelElement.style.right = '12%';
             // totalScoreLabelElement.style.paddingRight = '22px';
             totalScoreLabelElement.style.fontFamily = 'inpin hongmengti';
             checkboxParent.appendChild(totalScoreLabelElement);
