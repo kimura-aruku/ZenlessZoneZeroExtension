@@ -704,9 +704,11 @@ window.onload = () => {
             // bg要素を取得できれば完了
             const validateEquipInfoElements = (els) => 
                 Array.from(els).some(el => el.querySelector('.bg'));
-            // キャラが表示されているのにセット効果がないなら装備なしとみなす
+            // キャラが表示されていてセット効果がなくディスクもないなら装備なしとみなす
             const stopCondition = () => 
-                (document.querySelector('.empty-content') && document.querySelector('role-avatar-container img')?.src);
+                (!!document.querySelector('.empty-content') 
+                && !!document.querySelector('.role-avatar-container img')?.src
+                && !document.querySelector('.equip-info .bg'));
             // 上記条件でドライバ情報要素*6を取得
             const equipInfoElements = await waitForElements(
                 '.equip-info', 
