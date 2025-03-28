@@ -552,9 +552,8 @@ window.onload = () => {
                     content.appendChild(contentHeaderElement);
                     content.appendChild(subPropListElement);
                 } 
-                // 未装備のドライバ欄
                 else {
-                    // content.textContent = `ドライバー(${index + 1})は空っぽ`;
+                    // 未装備のドライバ欄
                 }
                 li.appendChild(content);
             }
