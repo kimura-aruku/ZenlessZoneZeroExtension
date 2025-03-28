@@ -712,7 +712,7 @@ window.onload = () => {
             // キャラが表示されていてセット効果がなくディスクもないなら装備なしとみなす
             const stopCondition = () => 
                 (!!document.querySelector('.empty-content') 
-                && !!document.querySelector('.role-avatar-container img')?.src
+                && !!document.querySelector('.role-avatar-container img')?.complete
                 && !document.querySelector('.equip-info .bg'));
             // 上記条件でドライバ情報要素*6を取得
             const equipInfoElements = await waitForElements(
