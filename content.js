@@ -323,7 +323,7 @@ window.onload = () => {
             parentElement.style.height = 'auto';
             const mainFrameElement = document.createElement('div');
             mainFrameElement.classList.add(MY_CLASS);
-            // TODO:ここを取れないあるので、setupでとってからにする
+            // 要素を取得してコピー
             const skillInfoUl = document.querySelector('.skill-info ul');
             const skillInfoChildUl = skillInfoUl.querySelector('.skill-item');
             const skillInfoContentUl = skillInfoChildUl.querySelector('div');
@@ -351,14 +351,19 @@ window.onload = () => {
             const lis = copiedUl.querySelectorAll('li');
             const liStyle = window.getComputedStyle(skillInfoChildUl);
             const allowedPropertiesForChild = 
-                ['height', 'width', 'padding', 'border', 'margin', 'box-sizing', 
-                    'color', 'display', 'border-radius', 'border', 'background'];
+                ['height', 'width', 'padding', 'margin', 'box-sizing', 'color',
+                     'display', 'border', 'border-radius', 'border-width', 'background'];
             let totalScores = 0;
             for(let i = 0; i < lis.length; i++){
                 const li = lis[i];
                 // 子要素にスタイル適用
                 for (let property of allowedPropertiesForChild) {
-                    li.style[property] = liStyle.getPropertyValue(property);
+                    // なぜかボーダーだけ細くなるので2倍にする
+                    if(property.includes('border') && property.includes('width')){
+                        li.style[property] = `calc(${liStyle.getPropertyValue(property)} * 2.0)`;
+                    }else{
+                        li.style[property] = liStyle.getPropertyValue(property);
+                    }
                 }
                 // クラスとサイズを改変
                 li.className = '';
@@ -366,19 +371,20 @@ window.onload = () => {
                 li.style.minHeight = li.style.height;
                 li.style.width = 'auto';
                 li.style.height = 'auto';
-                li.style.alignItems = 'flex-start';
                 // 内容を作成
                 const content = document.createElement('div');
-                content.style.width = 'auto';
-                content.style.height = 'auto';
                 // 内容にスタイルを適用
                 const allowedPropertiesForContent = 
-                    ['background', 'border', 'margin', 'border-radius'];
+                    ['background', 'border', 'margin', 'border-radius', 'height', 'width'];
                 for (let property of allowedPropertiesForContent) {
                     content.style[property] = contentStyle.getPropertyValue(property);
-                    // ボーダーが被って消えるのを防ぐ
-                    content.style.overflow = 'hidden';
                 }
+                // ボーダーが被って消えるのを防ぐ
+                content.style.minWidth = content.style.width;
+                content.style.minHeight = content.style.height;
+                content.style.width = 'auto';
+                content.style.height = 'auto';
+                content.style.overflow = 'hidden';
                 const driverInfo = driverInfoList[i];
                 if (driverInfo) {
                     // ヘッダー：アイコン,タイトル,レベル
