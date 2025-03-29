@@ -617,6 +617,7 @@ window.onload = () => {
                 span.textContent = propKeyAndName[1];
                 applyOriginalItemStyle(span);
                 applyOriginalItemShapeStyle(span);
+                span.style.cursor = 'pointer';
             
                 // クリックでオンオフ切り替え
                 span.addEventListener('click', () => {
