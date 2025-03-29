@@ -1,6 +1,6 @@
 # スコア計算 Chrome拡張
 
-このChrome拡張は[ゼンゼロ戦績](https://act.hoyolab.com/app/zzz-game-record/index.html) 上でスコア計算を行い、その結果をページに追加する機能を提供します。
+このChrome拡張は[ゼンゼロ戦績-エージェント詳細](https://act.hoyolab.com/app/zzz-game-record/index.html) 上でスコア計算を行い、その結果をページに追加する機能を提供します。
 
 ## 特徴
 
@@ -10,7 +10,7 @@
 
 - **汎用性**：加点対象とするステータスは自身で選択できるため、HPアタッカー、サポーターなど、全てのキャラクターで利用することができます。
 
-- **結果表示**：計算結果は [ゼンゼロ戦績](https://act.hoyolab.com/app/zzz-game-record/index.html)上に表示されます。
+- **結果表示**：計算結果は [ゼンゼロ戦績-エージェント詳細](https://act.hoyolab.com/app/zzz-game-record/index.html)上に表示されます。
 <div style="margin-left:20px;">
    <figure>
       <figcaption><small>導入後のイメージ</small></figcaption>
@@ -42,14 +42,16 @@
 
 1. [ゼンゼロ戦績](https://act.hoyolab.com/app/zzz-game-record/index.html)にアクセスします。
 
-2. 加点対象にしたいステータスをクリックで選択します。  
+2. いずれかの所持エージェントを選択するか、「すべてのエージェント」をクリックし、「エージェント詳細」を表示します。
+
+3. 加点対象にしたいステータスをクリックで選択します。  
 ※選択情報はキャラクターごとに保存され、次回以降の選択が不要になります。
 
-3. 拡張機能が自動的にページのスコアを計算し、結果を画面上に表示します。
+4. 拡張機能が自動的にページのスコアを計算し、結果を画面上に表示します。
 
 ## 注意
 
-- この拡張機能は、[ゼンゼロ戦績](https://act.hoyolab.com/app/zzz-game-record/index.html)のみで動作します。他のウェブサイトでは動作しません。
+- この拡張機能は、[ゼンゼロ戦績-エージェント詳細](https://act.hoyolab.com/app/zzz-game-record/index.html)のみで動作します。他のウェブサイトでは動作しません。
 
 - スコア計算は普及された計算方法とは異なるため、他サイトとは異なる結果になることがあります。
 
