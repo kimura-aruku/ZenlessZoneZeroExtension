@@ -412,7 +412,7 @@ window.onload = () => {
                     if (driverName.length >= 9) {
                         titleNameElement.textContent = driverName.slice(0, 4) + '…' + driverName.slice(-3);
                     }else{
-                        titleNameElement.textContent = driverInfo.driverName;
+                        titleNameElement.textContent = driverName;
                     }
                     titleNameElement.style.overflow = 'hidden';
                     titleNameElement.style.whiteSpace = 'nowrap';
@@ -443,7 +443,12 @@ window.onload = () => {
                     const mainPropElement = document.createElement('div');
                     const mainPropNameElement = document.createElement('span');
                     applyOriginalItemStyle(mainPropNameElement);
-                    mainPropNameElement.textContent = driverInfo.mainPropName;
+                    const mainPropName = driverInfo.mainPropName;
+                    if (mainPropName.length > 9) {
+                        mainPropNameElement.textContent = mainPropName.slice(0, 8) + '…';
+                    }else{
+                        mainPropNameElement.textContent = mainPropName;
+                    }
                     mainPropNameElement.style.float = 'left';
                     const mainPropValueElement = document.createElement('span');
                     applyOriginalItemStyle(mainPropValueElement);
