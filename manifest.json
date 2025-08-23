@@ -9,6 +9,12 @@
     "name": "ゼンレスゾーンゼロスコア計算機",
     "short_name": "スコア計算機",
     "version": "1.0.0",
-    "permissions": ["storage"]
+    "permissions": ["storage"],
+    "icons": {
+       "16": "Icons/Icon16.png",
+       "32": "Icons/Icon32.png",
+       "48": "Icons/Icon48.png",
+       "128": "Icons/Icon128.png"
+    }
  }
  
