@@ -2,7 +2,14 @@
 
 window.onload = () => {
     // 設定定数を参照
-    const { CSS_CLASSES, NUMERIC_CONSTANTS, STRING_CONSTANTS, CSS_PROPERTIES, OBSERVER_OPTIONS, STYLE_CONSTANTS, STYLE_TYPES, PROP_NAME_TRANSLATIONS, PROP_NAME, UI_TRANSLATIONS } = Config;
+    const { CSS_CLASSES, NUMERIC_CONSTANTS, STRING_CONSTANTS, CSS_PROPERTIES, OBSERVER_OPTIONS, STYLE_CONSTANTS, STYLE_TYPES, PROP_NAME, UI_TRANSLATIONS } = Config;
+    
+    // テキストを正規化する関数
+    function normalizeText(text) {
+        if (!text) return '';
+        // 非改行スペース(&nbsp;)を通常スペースに変換し、前後の空白を除去
+        return text.replace(/\u00A0/g, ' ').trim();
+    }
     
     // ドライバ情報リスト
     /** @type {Array<{
@@ -135,11 +142,11 @@ window.onload = () => {
         function getActivePropNamesFromCheckboxes(){
             const checkedPropNames = [];
             const currentLang = getCurrentLanguage();
-            const propNames = Object.values(PROP_NAME_TRANSLATIONS[currentLang]);
+            const propNames = Object.values(PROP_NAME[currentLang]);
             propNames.forEach((value, index) => {
                 const checkbox = document.getElementById(`${Config.CHECKBOX_ID_PREFIX}${index}`);
                 if (checkbox?.getAttribute(STRING_CONSTANTS.ATTR_DATA_CHECKED) === STRING_CONSTANTS.ATTR_TRUE) {
-                    checkedPropNames.push(propNames[index]);
+                    checkedPropNames.push(normalizeText(propNames[index]));
                 }
             });
             return checkedPropNames;
@@ -176,20 +183,21 @@ window.onload = () => {
         // スコアにして返す
         function getScoreAndHitCount(subPropName, subPropValue){
             const currentLang = getCurrentLanguage();
+            const normalizedSubPropName = normalizeText(subPropName);
             // 実数かパーセントか判断できない状態
-            const isRealOrPercent = [PROP_NAME.HP, PROP_NAME.ATK, PROP_NAME.DEF, UI_TRANSLATIONS[currentLang].PENETRATION]
-                .includes(subPropName);
+            const isRealOrPercent = [PROP_NAME[currentLang].HP, PROP_NAME[currentLang].ATK, PROP_NAME[currentLang].DEF, UI_TRANSLATIONS[currentLang].PENETRATION]
+                .includes(normalizedSubPropName);
             // 実数
             if(isRealOrPercent && !subPropValue.includes('%')){
                 const subPropNumberValue = Number(subPropValue.trim());
-                switch(subPropName){
-                    case PROP_NAME.HP:
+                switch(normalizedSubPropName){
+                    case PROP_NAME[currentLang].HP:
                         return {score:0, hitCount: Math.round(
                             subPropNumberValue / NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.HP_BASE_VALUE)-NUMERIC_CONSTANTS.HIT_COUNT_ADJUSTMENT};
-                    case PROP_NAME.ATK:
+                    case PROP_NAME[currentLang].ATK:
                         return {score:0, hitCount: Math.round(
                             subPropNumberValue / NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.ATK_BASE_VALUE)-NUMERIC_CONSTANTS.HIT_COUNT_ADJUSTMENT};
-                    case PROP_NAME.DEF:
+                    case PROP_NAME[currentLang].DEF:
                         return {score:0, hitCount: Math.round(
                             subPropNumberValue / NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.DEF_BASE_VALUE)-NUMERIC_CONSTANTS.HIT_COUNT_ADJUSTMENT};
                     case UI_TRANSLATIONS[currentLang].PENETRATION:
@@ -200,32 +208,32 @@ window.onload = () => {
             const subPropNumberValue = Number(subPropValue.replace(Config.REGEX_PATTERNS.PERCENTAGE, '').trim());
             let score = 0;
             let hitCount = 0;
-            switch (subPropName) {
+            switch (normalizedSubPropName) {
                 // 攻撃、HP
-                case PROP_NAME.HP:
-                case PROP_NAME.ATK:
+                case PROP_NAME[currentLang].HP:
+                case PROP_NAME[currentLang].ATK:
                     score = subPropNumberValue * NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.HP_ATK_MULTIPLIER;
                     hitCount = subPropNumberValue / NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.HP_ATK_HIT_DIVISOR;
                     break;
                 // 会心ダメージ、 防御
-                case PROP_NAME.CRIT_DMG:
-                case PROP_NAME.DEF:
+                case PROP_NAME[currentLang].CRIT_DMG:
+                case PROP_NAME[currentLang].DEF:
                     score = subPropNumberValue * NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.CRIT_DMG_DEF_MULTIPLIER;
                     hitCount = subPropNumberValue / NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.CRIT_DMG_DEF_HIT_DIVISOR;
                     break;
                 // 会心率
-                case PROP_NAME.CRIT_RATE:
+                case PROP_NAME[currentLang].CRIT_RATE:
                     score = subPropNumberValue * NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.CRIT_RATE_MULTIPLIER;
                     hitCount = subPropNumberValue / NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.CRIT_RATE_HIT_DIVISOR;
                     break;
                 // 異常マスタリー
-                case PROP_NAME.ANOMALY_PROFICIENCY:
+                case PROP_NAME[currentLang].ANOMALY_PROFICIENCY:
                     score = NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.ANOMALY_PROFICIENCY_MULTIPLIER * subPropNumberValue;
                     hitCount = subPropNumberValue / NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.ANOMALY_PROFICIENCY_HIT_DIVISOR;
                     break;
             }
             // 無効な項目
-            if(!getActivePropNamesFromCheckboxes().includes(subPropName)){
+            if(!getActivePropNamesFromCheckboxes().includes(normalizedSubPropName)){
                 score = 0;
             }
             return {score:Math.floor(score * NUMERIC_CONSTANTS.SCORE_DECIMAL_MULTIPLIER) * NUMERIC_CONSTANTS.SCORE_DECIMAL_DIVISOR, hitCount: Math.round(hitCount)-NUMERIC_CONSTANTS.HIT_COUNT_ADJUSTMENT};
@@ -381,7 +389,7 @@ window.onload = () => {
             const styleObjects = StyleManager.getStyleCache();
             
             const currentLang = getCurrentLanguage();
-            const translations = PROP_NAME_TRANSLATIONS[currentLang];
+            const translations = PROP_NAME[currentLang];
             
             // チェックボックス変更時のコールバック
             const onCheckboxChange = (checkbox, isChecked) => {
@@ -410,11 +418,11 @@ window.onload = () => {
         // チェックボックスの内容を保存
         function saveTargetProp(){
             const currentLang = getCurrentLanguage();
-            const propKeyAndNames = Object.entries(PROP_NAME_TRANSLATIONS[currentLang]);
+            const propKeyAndNames = Object.entries(PROP_NAME[currentLang]);
             const activePropNames = getActivePropNamesFromCheckboxes();
             const targetPropsObject = {};
             for (let propKeyAndName of propKeyAndNames){
-                targetPropsObject[propKeyAndName[0]] = !!activePropNames.includes(propKeyAndName[1]);
+                targetPropsObject[propKeyAndName[0]] = !!activePropNames.includes(normalizeText(propKeyAndName[1]));
             }
             const characterName = getCharacterName();
             // キャラ名をキーにチェック状態を保存

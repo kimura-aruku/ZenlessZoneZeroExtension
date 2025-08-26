@@ -192,7 +192,7 @@ window.Config = (() => {
     });
 
     // プロパティ名翻訳
-    const PROP_NAME_TRANSLATIONS = Object.freeze({
+    const PROP_NAME = Object.freeze({
         JP: {
             HP: 'HP',
             ATK: '攻撃力',
@@ -209,16 +209,6 @@ window.Config = (() => {
             CRIT_DMG: 'CRIT DMG',
             ANOMALY_PROFICIENCY: 'Anomaly Proficiency'
         }
-    });
-
-    // 固定のプロパティ名（日本語）
-    const PROP_NAME = Object.freeze({
-        HP: 'HP',
-        ATK: '攻撃力',
-        DEF: '防御力',
-        CRIT_RATE: '会心率',
-        CRIT_DMG: '会心ダメージ',
-        ANOMALY_PROFICIENCY: '異常マスタリー'
     });
 
     // UI文字列翻訳
@@ -248,7 +238,6 @@ window.Config = (() => {
         REGEX_PATTERNS,
         DEFAULTS,
         STYLE_CONSTANTS,
-        PROP_NAME_TRANSLATIONS,
         PROP_NAME,
         UI_TRANSLATIONS
     };
