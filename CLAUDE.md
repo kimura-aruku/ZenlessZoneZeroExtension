@@ -95,6 +95,137 @@ Manifest V3とChrome storage APIを使用してChromeに特化して設計され
 - **リンター設定**: ESLintやPrettierによるコード品質の統一
 - **ドキュメント拡充**: 関数レベルのドキュメントとアーキテクチャ図の追加
 
+## 技術詳細
+
+### 描画フロー
+
+#### 初期化フロー
+1. **window.onload** → `firstDraw()`呼び出し
+2. **setup()** → ドライバ情報キャッシュと色情報取得
+   - `tryCacheDriverInfoList()`: 各ドライバをクリックして情報を抽出
+   - 色情報キャッシュ (`activeItemColor`, `headerBackgroundColor`)
+   - `waitForElement('.role-detail-container')`: キャラ要素待機
+3. **setObservers()** → MutationObserver設定
+4. **drawConfig()** → チェックボックス生成
+5. **loadAndSetTargetPropNamesObject(drawScore)** → 保存済み設定読み込み後にスコア描画
+
+#### 再描画フロー (キャラクター変更時)
+1. **MutationObserver callback** → backgroundスタイル変更を検知
+2. **reDraw()** → `tryCacheDriverInfoList()` → `drawConfig()` → `loadAndSetTargetPropNamesObject(drawScore)`
+
+#### UI更新フロー (チェックボックス操作時)
+1. **checkbox click** → `changeCheckbox()` → `saveTargetProp()` → `drawScore()`
+
+### 監視・検知方法
+
+#### キャラクター変更検知
+- **監視対象**: `.role-detail-container`要素のstyle属性
+- **検知条件**: background プロパティの変更
+- **実装**: MutationObserver (attributeFilter: ['style'])
+- **コールバック処理**: background値比較による変更判定
+
+#### 要素待機システム
+- **汎用関数**: `waitForElement()`, `waitForElements()`
+- **タイムアウト**: 10秒 (10000ms)
+- **監視オプション**: `{ childList: true, subtree: true, attributes: true }`
+- **停止条件**: カスタム条件関数による早期終了
+
+#### ドライバ装備状態検知
+- **装備判定**: `.equip-info .bg`要素の存在
+- **未装備判定**: `.empty-content`存在 + `.role-avatar-container img`完了 + `.equip-info .bg`不在
+- **バリデーション**: `validateEquipInfoElements()`による要素検証
+
+### セレクター依存関係
+
+#### 言語検知
+- `.mhy-hoyolab-lang-selector__current-lang` → 言語設定取得
+
+#### ドライバ情報抽出
+- `.role-detail-popup.equip-popup` → ポップアップコンテナ
+- `.popup-content img` → ドライバアイコン
+- `.popup-content p` → 名前・レベル要素
+- `.base-attrs span` → メインステータス
+- `.upper-attrs div` → サブステータス
+- `.close-icon` → ポップアップ閉じボタン
+
+#### UI描画・配置
+- `.equipment-info` → メイン親要素
+- `.skill-info ul` → スタイル参照元
+- `.skill-item` → リスト項目スタイル
+- `.property-info` → 色情報取得
+- `.base-add-prop span` → アクティブ色取得
+- `.equipment-info h2` → ヘッダ背景色取得
+- `.nickname` → キャラクター名取得
+
+#### 装備状態判定
+- `.equip-info` → 装備スロット (×6)
+- `.bg` → 装備済み判定用要素
+- `.empty-content` → 未装備状態表示
+- `.role-avatar-container img` → キャラクター画像
+
+### アーキテクチャ構造
+
+#### データ層
+```
+driverInfoList[] → キャッシュされたドライバ情報
+  ├─ iconSource: string
+  ├─ driverName: string  
+  ├─ driverBackgroundImage: string
+  ├─ driverLevel: string
+  ├─ mainPropName: string
+  ├─ mainPropValue: string
+  └─ subPropNameAndValues[]
+     ├─ name: string
+     └─ value: string
+```
+
+#### スタイルキャッシュ
+```
+titleStyleObject → タイトル用スタイル
+itemStyleObject → 項目用スタイル  
+captionStyleObject → キャプション用スタイル
+itemShapeStyleObject → アイテム形状用スタイル
+activeItemColor → アクティブ項目色
+headerBackgroundColor → ヘッダ背景色
+```
+
+#### 監視システム
+```
+characterInfoElement → 監視対象要素
+characterInfoElementObserver → MutationObserver
+  └─ callback() → 変更検知時の処理
+```
+
+#### 設定管理
+```
+Chrome Storage Local
+  └─ [characterName]: targetPropsObject
+     ├─ HP: boolean
+     ├─ ATK: boolean  
+     ├─ DEF: boolean
+     ├─ CRIT_RATE: boolean
+     ├─ CRIT_DMG: boolean
+     └─ ANOMALY_PROFICIENCY: boolean
+```
+
+### スコア計算ロジック
+
+#### hitCount（強化回数）について
+`hitCount`はドライバディスクの強化回数を表します。ゼンレスゾーンゼロでは強化による各ステータスの伸び幅が固定値のため、現在の値を1回あたりの強化値で割ることで強化回数を算出できます。この強化回数は、ドライバの品質評価やポテンシャル判断の重要な指標となります。
+
+#### 基本係数
+- **攻撃・HP**: score = value * 1.6, hitCount = value / 3.0 (強化1回あたり3.0%上昇)
+- **会心ダメージ・防御**: score = value * 1.0, hitCount = value / 4.8 (強化1回あたり4.8%上昇)
+- **会心率**: score = value * 2.0, hitCount = value / 2.4 (強化1回あたり2.4%上昇)
+- **異常マスタリー**: score = value * (48/92), hitCount = value / 9.0 (強化1回あたり9.0上昇)
+
+#### 実数値処理 (% がない場合)
+実数値の場合は、各ステータスの基礎値からの増加分を1回あたりの強化値で割って強化回数を算出:
+- **HP**: hitCount = round(value / 112.0) - 1 (強化1回あたり112上昇)
+- **攻撃**: hitCount = round(value / 19.0) - 1 (強化1回あたり19上昇)
+- **防御**: hitCount = round(value / 15.0) - 1 (強化1回あたり15上昇)
+- **貫通値**: hitCount = round(value / 9.0) - 1 (強化1回あたり9上昇)
+
 ## 注意事項
 
 - この改善点リストはプロジェクトの更新に応じて随時見直し・更新を行う
