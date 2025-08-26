@@ -123,7 +123,7 @@ Manifest V3とChrome storage APIを使用してChromeに特化して設計され
 #### UI更新フロー (チェックボックス操作時)
 1. **checkbox click** → `changeCheckbox()` → `saveTargetProp()` → `drawScore()`
 
-### 監視・検知方法
+### 監視・検知システム
 
 #### キャラクター変更検知
 - **監視対象**: `.role-detail-container`要素のstyle属性
@@ -141,6 +141,19 @@ Manifest V3とChrome storage APIを使用してChromeに特化して設計され
 - **装備判定**: `.equip-info .bg`要素の存在
 - **未装備判定**: `.empty-content`存在 + `.role-avatar-container img`完了 + `.equip-info .bg`不在
 - **バリデーション**: `validateEquipInfoElements()`による要素検証
+
+#### チェックボックス状態変更検知
+- **監視対象**: `alk-check-box`要素のクリックイベント
+- **処理フロー**: changeCheckbox() → saveTargetProp() → drawScore()
+- **データ永続化**: Chrome storage APIでキャラクターごとの設定保存
+- **スコア再計算**: チェックボックス状態変更時に自動でスコア表示更新
+
+#### 監視システム構造
+```
+characterInfoElement → 監視対象要素
+characterInfoElementObserver → MutationObserver
+  └─ callback() → 変更検知時の処理
+```
 
 ### セレクター依存関係
 
@@ -194,13 +207,6 @@ captionStyleObject → キャプション用スタイル
 itemShapeStyleObject → アイテム形状用スタイル
 activeItemColor → アクティブ項目色
 headerBackgroundColor → ヘッダ背景色
-```
-
-#### 監視システム
-```
-characterInfoElement → 監視対象要素
-characterInfoElementObserver → MutationObserver
-  └─ callback() → 変更検知時の処理
 ```
 
 #### 設定管理
