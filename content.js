@@ -204,7 +204,32 @@ window.onload = () => {
             popupContentElement.parentNode.querySelector('.close-icon').click();
         }
 
+        // 言語検知関数
+        function getCurrentLanguage() {
+            const langSelector = document.querySelector('.mhy-hoyolab-lang-selector__current-lang');
+            return langSelector?.textContent?.trim() === 'EN' ? 'EN' : 'JP';
+        }
+
         // ステータスのキーと名称
+        const PROP_NAME_TRANSLATIONS = Object.freeze({
+            JP: {
+                HP: 'HP',
+                ATK: '攻撃力',
+                DEF: '防御力',
+                CRIT_RATE: '会心率',
+                CRIT_DMG: '会心ダメージ',
+                ANOMALY_PROFICIENCY: '異常マスタリー'
+            },
+            EN: {
+                HP: 'HP',
+                ATK: 'ATK',
+                DEF: 'DEF',
+                CRIT_RATE: 'CRIT Rate',
+                CRIT_DMG: 'CRIT DMG',
+                ANOMALY_PROFICIENCY: 'Anomaly Proficiency'
+            }
+        });
+
         const PROP_NAME = Object.freeze({
             HP: 'HP',
             ATK: '攻撃力',
@@ -217,7 +242,8 @@ window.onload = () => {
         // チェックが入ったステータス名を返す
         function getActivePropNamesFromCheckboxes(){
             const checkedPropNames = [];
-            const propNames = Object.values(PROP_NAME);
+            const currentLang = getCurrentLanguage();
+            const propNames = Object.values(PROP_NAME_TRANSLATIONS[currentLang]);
             propNames.forEach((value, index) => {
                 const checkbox = document.getElementById(`checkbox${index}`);
                 if (checkbox?.getAttribute('data-checked') === 'true') {
@@ -254,10 +280,25 @@ window.onload = () => {
             }
         }
 
+        // UI文字列
+        const UI_TRANSLATIONS = Object.freeze({
+            JP: {
+                SCORE: 'スコア',
+                TOTAL_SCORE: '合計スコア',
+                PENETRATION: '貫通値'
+            },
+            EN: {
+                SCORE: 'Score',
+                TOTAL_SCORE: 'Total Score', 
+                PENETRATION: 'PEN Ratio'
+            }
+        });
+
         // スコアにして返す
         function getScoreAndHitCount(subPropName, subPropValue){
+            const currentLang = getCurrentLanguage();
             // 実数かパーセントか判断できない状態
-            const isRealOrPercent = [PROP_NAME.HP, PROP_NAME.ATK, PROP_NAME.DEF, '貫通値']
+            const isRealOrPercent = [PROP_NAME.HP, PROP_NAME.ATK, PROP_NAME.DEF, UI_TRANSLATIONS[currentLang].PENETRATION]
                 .includes(subPropName);
             // 実数
             if(isRealOrPercent && !subPropValue.includes('%')){
@@ -272,7 +313,7 @@ window.onload = () => {
                     case PROP_NAME.DEF:
                         return {score:0, hitCount: Math.round(
                             subPropNumberValue / 15.0)-1};
-                    case '貫通値':
+                    case UI_TRANSLATIONS[currentLang].PENETRATION:
                         return {score:0, hitCount: Math.round(
                             subPropNumberValue / 9.0)-1};
                 }
@@ -542,7 +583,7 @@ window.onload = () => {
                     totalElement.style.backgroundColor = headerBackgroundColor;
                     const totalNameElement = document.createElement('span');
                     applyOriginalItemStyle(totalNameElement);
-                    totalNameElement.textContent = 'スコア';
+                    totalNameElement.textContent = UI_TRANSLATIONS[getCurrentLanguage()].SCORE;
                     totalNameElement.style.float = 'left';
                     const totalValueElement = document.createElement('span');
                     applyOriginalItemStyle(totalValueElement);
@@ -570,7 +611,7 @@ window.onload = () => {
             const checkboxParent = document.querySelector(`.${MY_CHECK_BOX_CONTAINER_CLASS}`);
             const totalScoreLabelElement = document.createElement('span');
             totalScoreLabelElement.classList.add(MY_CLASS);
-            totalScoreLabelElement.textContent = '合計スコア';
+            totalScoreLabelElement.textContent = UI_TRANSLATIONS[getCurrentLanguage()].TOTAL_SCORE;
             applyOriginalTitleStyle(totalScoreLabelElement);
             totalScoreLabelElement.style.float = 'right';
             totalScoreLabelElement.style.textAlign = 'right';
@@ -613,7 +654,8 @@ window.onload = () => {
             container.style.display = 'flex';
             container.style.columnGap = '5px';
             container.style.padding = '0 22px 8px 18px';
-            const propKeyAndNames = Object.entries(PROP_NAME);
+            const currentLang = getCurrentLanguage();
+            const propKeyAndNames = Object.entries(PROP_NAME_TRANSLATIONS[currentLang]);
             for (let i = 0; i < propKeyAndNames.length; i++) {
                 const propKeyAndName = propKeyAndNames[i];
                 const span = document.createElement('span');
@@ -645,7 +687,8 @@ window.onload = () => {
 
         // チェックボックスの内容を保存
         function saveTargetProp(){
-            const propKeyAndNames = Object.entries(PROP_NAME);
+            const currentLang = getCurrentLanguage();
+            const propKeyAndNames = Object.entries(PROP_NAME_TRANSLATIONS[currentLang]);
             const activePropNames = getActivePropNamesFromCheckboxes();
             const targetPropsObject = {};
             for (let propKeyAndName of propKeyAndNames){
