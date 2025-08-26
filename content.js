@@ -1,10 +1,8 @@
 
 
 window.onload = () => {
-    const MY_CLASS = 'alk-element';
-    const MY_OVERLAY_ID = 'alk-overlay';
-    const MY_CHECK_BOX_CLASS = 'alk-check-box';
-    const MY_CHECK_BOX_CONTAINER_CLASS = 'alk-check-box-container';
+    // 設定定数を参照
+    const { CSS_CLASSES, NUMERIC_CONSTANTS, STRING_CONSTANTS, CSS_PROPERTIES, OBSERVER_OPTIONS, PROP_NAME_TRANSLATIONS, PROP_NAME, UI_TRANSLATIONS } = Config;
     
     // ドライバ情報リスト
     /** @type {Array<{
@@ -47,7 +45,7 @@ window.onload = () => {
         if(Object.keys(titleStyleObject).length > 0){
             return;
         }
-        const allowedProperties = ['font-size', 'text-align', 'font-family', 'color', 'font-weight'];
+        const allowedProperties = CSS_PROPERTIES.TITLE_STYLE_PROPERTIES;
         titleStyleObject = getOriginalStyleObject(targetElement, allowedProperties);
     }
     function applyOriginalTitleStyle(element){
@@ -63,7 +61,7 @@ window.onload = () => {
         if(Object.keys(itemStyleObject).length > 0){
             return;
         }
-        const allowedProperties = ['font-size', 'font-family', 'color', 'font-weight'];
+        const allowedProperties = CSS_PROPERTIES.ITEM_STYLE_PROPERTIES;
         itemStyleObject = getOriginalStyleObject(targetElement, allowedProperties);
     }
     function applyOriginalItemStyle(element){
@@ -79,7 +77,7 @@ window.onload = () => {
         if(Object.keys(captionStyleObject).length > 0){
             return;
         }
-        const allowedProperties = ['font-size', 'text-align', 'font-family', 'color', 'font-weight'];
+        const allowedProperties = CSS_PROPERTIES.CAPTION_STYLE_PROPERTIES;
         captionStyleObject = getOriginalStyleObject(targetElement, allowedProperties);
     }
     function applyOriginalCaptionStyle(element){
@@ -95,7 +93,7 @@ window.onload = () => {
         if(Object.keys(itemShapeStyleObject).length > 0){
             return;
         }
-        const allowedProperties = ['border', 'background', 'border-radius', 'padding'];
+        const allowedProperties = CSS_PROPERTIES.ITEM_SHAPE_STYLE_PROPERTIES;
         itemShapeStyleObject = getOriginalStyleObject(targetElement, allowedProperties);
     }
     function applyOriginalItemShapeStyle(element){
@@ -135,7 +133,7 @@ window.onload = () => {
                     // 終了条件
                     if (stopCondition()) {
                         observer.disconnect();
-                        console.log(`終了条件を満たしました: ${selector} が見つかりませんでした`);
+                        console.log(`${STRING_CONSTANTS.ERROR_ELEMENT_NOT_FOUND}: ${selector} ${STRING_CONSTANTS.ERROR_TIMEOUT_SUFFIX}`);
                         resolve(null);
                     }
                 });
@@ -145,8 +143,8 @@ window.onload = () => {
                 // タイムアウト処理
                 setTimeout(() => {
                     anyObserver.disconnect();
-                    reject(new Error(`Timeout: 要素 ${selector} が見つかりませんでした`));
-                }, 10000);
+                    reject(new Error(`${STRING_CONSTANTS.ERROR_TIMEOUT_PREFIX} ${selector} ${STRING_CONSTANTS.ERROR_TIMEOUT_SUFFIX}`));
+                }, NUMERIC_CONSTANTS.ELEMENT_WAIT_TIMEOUT);
             });
         }
 
@@ -168,10 +166,10 @@ window.onload = () => {
 
         // ドライバ情報のキャッシュ
         async function cacheDriverInfo(driverIndex){
-            const popupContentElement = await waitForElement('.role-detail-popup.equip-popup', null);
+            const popupContentElement = await waitForElement(CSS_CLASSES.ROLE_DETAIL_POPUP, null);
             const driverInfo = {};
-            driverInfo.iconSource = popupContentElement.querySelector('.popup-content img')?.getAttribute('src');
-            const nameAndLevelElement = popupContentElement.querySelectorAll('.popup-content p');
+            driverInfo.iconSource = popupContentElement.querySelector(CSS_CLASSES.POPUP_CONTENT_IMG)?.getAttribute(STRING_CONSTANTS.ATTR_SRC);
+            const nameAndLevelElement = popupContentElement.querySelectorAll(CSS_CLASSES.POPUP_CONTENT_P);
             const nameElement = nameAndLevelElement[0];
             const levelElement = nameAndLevelElement[1];
             cacheTitleStyleObject(nameElement);
@@ -182,12 +180,12 @@ window.onload = () => {
             driverInfo.driverBackgroundImage = titleStyle.backgroundImage;;
             driverInfo.driverLevel = levelElement.textContent.trim();
             // メインステータス
-            const mainNameAndValueElement = popupContentElement.querySelectorAll('.base-attrs span');
+            const mainNameAndValueElement = popupContentElement.querySelectorAll(CSS_CLASSES.BASE_ATTRS_SPAN);
             cacheItemStyleObject(mainNameAndValueElement[1]);
             driverInfo.mainPropName = mainNameAndValueElement[0].textContent.trim();
             driverInfo.mainPropValue = mainNameAndValueElement[1].textContent.trim();
             // サブステータス
-            const supPropElements = popupContentElement.querySelectorAll('.upper-attrs div');
+            const supPropElements = popupContentElement.querySelectorAll(CSS_CLASSES.UPPER_ATTRS_DIV);
             const subPropNameAndValues = [];
             supPropElements.forEach(div => {
                 const spans = div.querySelectorAll('span');
@@ -201,43 +199,14 @@ window.onload = () => {
             });
             driverInfo.subPropNameAndValues = subPropNameAndValues;
             driverInfoList[driverIndex] = driverInfo;
-            popupContentElement.parentNode.querySelector('.close-icon').click();
+            popupContentElement.parentNode.querySelector(CSS_CLASSES.CLOSE_ICON).click();
         }
 
         // 言語検知関数
         function getCurrentLanguage() {
-            const langSelector = document.querySelector('.mhy-hoyolab-lang-selector__current-lang');
-            return langSelector?.textContent?.trim() === 'EN' ? 'EN' : 'JP';
+            const langSelector = document.querySelector(CSS_CLASSES.LANG_SELECTOR);
+            return langSelector?.textContent?.trim() === STRING_CONSTANTS.LANGUAGE_EN ? STRING_CONSTANTS.LANGUAGE_EN : STRING_CONSTANTS.LANGUAGE_JP;
         }
-
-        // ステータスのキーと名称
-        const PROP_NAME_TRANSLATIONS = Object.freeze({
-            JP: {
-                HP: 'HP',
-                ATK: '攻撃力',
-                DEF: '防御力',
-                CRIT_RATE: '会心率',
-                CRIT_DMG: '会心ダメージ',
-                ANOMALY_PROFICIENCY: '異常マスタリー'
-            },
-            EN: {
-                HP: 'HP',
-                ATK: 'ATK',
-                DEF: 'DEF',
-                CRIT_RATE: 'CRIT Rate',
-                CRIT_DMG: 'CRIT DMG',
-                ANOMALY_PROFICIENCY: 'Anomaly Proficiency'
-            }
-        });
-
-        const PROP_NAME = Object.freeze({
-            HP: 'HP',
-            ATK: '攻撃力',
-            DEF: '防御力',
-            CRIT_RATE: '会心率',
-            CRIT_DMG: '会心ダメージ',
-            ANOMALY_PROFICIENCY: '異常マスタリー'
-        });
 
         // チェックが入ったステータス名を返す
         function getActivePropNamesFromCheckboxes(){
@@ -245,8 +214,8 @@ window.onload = () => {
             const currentLang = getCurrentLanguage();
             const propNames = Object.values(PROP_NAME_TRANSLATIONS[currentLang]);
             propNames.forEach((value, index) => {
-                const checkbox = document.getElementById(`checkbox${index}`);
-                if (checkbox?.getAttribute('data-checked') === 'true') {
+                const checkbox = document.getElementById(`${Config.CHECKBOX_ID_PREFIX}${index}`);
+                if (checkbox?.getAttribute(STRING_CONSTANTS.ATTR_DATA_CHECKED) === STRING_CONSTANTS.ATTR_TRUE) {
                     checkedPropNames.push(propNames[index]);
                 }
             });
@@ -258,7 +227,7 @@ window.onload = () => {
             const characterName = getCharacterName();
             chrome.storage.local.get(characterName, (result) => {
                 if (chrome.runtime.lastError) {
-                    console.error("取得エラー:", chrome.runtime.lastError);
+                    console.error(STRING_CONSTANTS.ERROR_STORAGE_GET, chrome.runtime.lastError);
                     return;
                 } 
                 if(!result || !result[characterName]){
@@ -274,25 +243,12 @@ window.onload = () => {
         function setCheckboxesFromStorage(targetPropNamesObject){
             const keyAndValidations = Object.entries(targetPropNamesObject);
             for (let keyAndValidity of keyAndValidations){
-                const targetCheckbox = document.querySelector(`.${MY_CHECK_BOX_CLASS}.${keyAndValidity[0]}`);
+                const targetCheckbox = document.querySelector(`.${CSS_CLASSES.MY_CHECK_BOX_CLASS}.${keyAndValidity[0]}`);
                 const isChecked = !!keyAndValidity[1];
                 changeCheckbox(targetCheckbox, isChecked);
             }
         }
 
-        // UI文字列
-        const UI_TRANSLATIONS = Object.freeze({
-            JP: {
-                SCORE: 'スコア',
-                TOTAL_SCORE: '合計スコア',
-                PENETRATION: '貫通値'
-            },
-            EN: {
-                SCORE: 'Score',
-                TOTAL_SCORE: 'Total Score', 
-                PENETRATION: 'PEN Ratio'
-            }
-        });
 
         // スコアにして返す
         function getScoreAndHitCount(subPropName, subPropValue){
@@ -306,64 +262,64 @@ window.onload = () => {
                 switch(subPropName){
                     case PROP_NAME.HP:
                         return {score:0, hitCount: Math.round(
-                            subPropNumberValue / 112.0)-1};
+                            subPropNumberValue / NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.HP_BASE_VALUE)-NUMERIC_CONSTANTS.HIT_COUNT_ADJUSTMENT};
                     case PROP_NAME.ATK:
                         return {score:0, hitCount: Math.round(
-                            subPropNumberValue / 19.0)-1};
+                            subPropNumberValue / NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.ATK_BASE_VALUE)-NUMERIC_CONSTANTS.HIT_COUNT_ADJUSTMENT};
                     case PROP_NAME.DEF:
                         return {score:0, hitCount: Math.round(
-                            subPropNumberValue / 15.0)-1};
+                            subPropNumberValue / NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.DEF_BASE_VALUE)-NUMERIC_CONSTANTS.HIT_COUNT_ADJUSTMENT};
                     case UI_TRANSLATIONS[currentLang].PENETRATION:
                         return {score:0, hitCount: Math.round(
-                            subPropNumberValue / 9.0)-1};
+                            subPropNumberValue / NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.PENETRATION_BASE_VALUE)-NUMERIC_CONSTANTS.HIT_COUNT_ADJUSTMENT};
                 }
             }
-            const subPropNumberValue = Number(subPropValue.replace(/[%]/g, '').trim());
+            const subPropNumberValue = Number(subPropValue.replace(Config.REGEX_PATTERNS.PERCENTAGE, '').trim());
             let score = 0;
             let hitCount = 0;
             switch (subPropName) {
                 // 攻撃、HP
                 case PROP_NAME.HP:
                 case PROP_NAME.ATK:
-                    score = subPropNumberValue * 1.6;
-                    hitCount = subPropNumberValue / 3.0;
+                    score = subPropNumberValue * NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.HP_ATK_MULTIPLIER;
+                    hitCount = subPropNumberValue / NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.HP_ATK_HIT_DIVISOR;
                     break;
                 // 会心ダメージ、 防御
                 case PROP_NAME.CRIT_DMG:
                 case PROP_NAME.DEF:
-                    score = subPropNumberValue;
-                    hitCount = subPropNumberValue / 4.8;
+                    score = subPropNumberValue * NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.CRIT_DMG_DEF_MULTIPLIER;
+                    hitCount = subPropNumberValue / NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.CRIT_DMG_DEF_HIT_DIVISOR;
                     break;
                 // 会心率
                 case PROP_NAME.CRIT_RATE:
-                    score = subPropNumberValue * 2.0;
-                    hitCount = subPropNumberValue / 2.4;
+                    score = subPropNumberValue * NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.CRIT_RATE_MULTIPLIER;
+                    hitCount = subPropNumberValue / NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.CRIT_RATE_HIT_DIVISOR;
                     break;
                 // 異常マスタリー
                 case PROP_NAME.ANOMALY_PROFICIENCY:
-                    score = (48.0/92.0) * subPropNumberValue;
-                    hitCount = subPropNumberValue / 9.0;
+                    score = NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.ANOMALY_PROFICIENCY_MULTIPLIER * subPropNumberValue;
+                    hitCount = subPropNumberValue / NUMERIC_CONSTANTS.SCORE_COEFFICIENTS.ANOMALY_PROFICIENCY_HIT_DIVISOR;
                     break;
             }
             // 無効な項目
             if(!getActivePropNamesFromCheckboxes().includes(subPropName)){
                 score = 0;
             }
-            return {score:Math.floor(score * 100) * 0.01, hitCount: Math.round(hitCount)-1};
+            return {score:Math.floor(score * NUMERIC_CONSTANTS.SCORE_DECIMAL_MULTIPLIER) * NUMERIC_CONSTANTS.SCORE_DECIMAL_DIVISOR, hitCount: Math.round(hitCount)-NUMERIC_CONSTANTS.HIT_COUNT_ADJUSTMENT};
         }
 
         // スコア描画
         function drawScore(){
             // 念のため削除
-            document.querySelectorAll(`.${MY_CLASS}`)?.forEach(element => {
+            document.querySelectorAll(`.${CSS_CLASSES.MY_CLASS}`)?.forEach(element => {
                 element.remove();
             });
             // とりあえず親にする要素
-            const parentElement = document.querySelector('.equipment-info');
+            const parentElement = document.querySelector(CSS_CLASSES.EQUIPMENT_INFO);
             // 親内に入れるためstyle改変
             parentElement.style.height = 'auto';
             const mainFrameElement = document.createElement('div');
-            mainFrameElement.classList.add(MY_CLASS);
+            mainFrameElement.classList.add(CSS_CLASSES.MY_CLASS);
             
             // スタイル情報をまとめる
             const styleObjects = {
@@ -486,7 +442,7 @@ window.onload = () => {
             parentElement.append(mainFrameElement);
             
             // 合計スコア表示を更新
-            const checkboxParent = document.querySelector(`.${MY_CHECK_BOX_CONTAINER_CLASS}`);
+            const checkboxParent = document.querySelector(`.${CSS_CLASSES.MY_CHECK_BOX_CONTAINER_CLASS}`);
             if (checkboxParent) {
                 ScoreComponent.updateTotalScore(
                     checkboxParent, 
@@ -506,7 +462,7 @@ window.onload = () => {
         // 加算対象のチェックボックス描画
         function drawConfig(){
             // 念のため削除
-            document.querySelectorAll(`.${MY_CHECK_BOX_CLASS}`)?.forEach(element => {
+            document.querySelectorAll(`.${CSS_CLASSES.MY_CHECK_BOX_CLASS}`)?.forEach(element => {
                 element.remove();
             });
             
@@ -542,7 +498,7 @@ window.onload = () => {
 
         // キャラ名取得
         function getCharacterName(){
-            return document.querySelector('.nickname').textContent?.trim();
+            return document.querySelector(CSS_CLASSES.NICKNAME).textContent?.trim();
         }
 
         // チェックボックスの内容を保存
@@ -558,9 +514,9 @@ window.onload = () => {
             // キャラ名をキーにチェック状態を保存
             chrome.storage.local.set({ [characterName]: targetPropsObject }, () => {
                 if (chrome.runtime.lastError) {
-                    console.error("保存エラー:", chrome.runtime.lastError);
+                    console.error(STRING_CONSTANTS.ERROR_STORAGE_SET, chrome.runtime.lastError);
                 } else {
-                    console.log(`${characterName} のデータを保存しました`, targetPropsObject);
+                    console.log(`${characterName} ${STRING_CONSTANTS.LOG_DATA_SAVED}`, targetPropsObject);
                 }
             });
         }
@@ -581,15 +537,7 @@ window.onload = () => {
                 characterInfoElementObserver.disconnect();
             }
             characterInfoElementObserver = new MutationObserver(callback);
-            characterInfoElementObserver.observe(characterInfoElement, {
-                childList: false,
-                attributes: true,
-                subtree: false,
-                characterData: false,
-                characterDataOldValue: false,
-                attributeOldValue: false,
-                attributeFilter: ['style']
-            });
+            characterInfoElementObserver.observe(characterInfoElement, OBSERVER_OPTIONS.STYLE_ONLY);
         }
 
         // 監視のコールバック
@@ -617,15 +565,15 @@ window.onload = () => {
         async function tryCacheDriverInfoList(){
             // bg要素を取得できれば完了
             const validateEquipInfoElements = (els) => 
-                Array.from(els).some(el => el.querySelector('.bg'));
+                Array.from(els).some(el => el.querySelector(CSS_CLASSES.BG));
             // キャラが表示されていてセット効果がなくディスクもないなら装備なしとみなす
             const stopCondition = () => 
-                (!!document.querySelector('.empty-content') 
-                && !!document.querySelector('.role-avatar-container img')?.complete
-                && !document.querySelector('.equip-info .bg'));
+                (!!document.querySelector(CSS_CLASSES.EMPTY_CONTENT) 
+                && !!document.querySelector(CSS_CLASSES.ROLE_AVATAR_CONTAINER_IMG)?.complete
+                && !document.querySelector(`${CSS_CLASSES.EQUIP_INFO} ${CSS_CLASSES.BG}`));
             // 上記条件でドライバ情報要素*6を取得
             const equipInfoElements = await waitForElements(
-                '.equip-info', 
+                CSS_CLASSES.EQUIP_INFO, 
                 validateEquipInfoElements, 
                 undefined, 
                 stopCondition
@@ -636,7 +584,7 @@ window.onload = () => {
             }
             // ドライバの装備/非装備リスト
             const equipDriverList = Array.from(equipInfoElements)
-                .map(el => !!el.querySelector('.bg'));
+                .map(el => !!el.querySelector(CSS_CLASSES.BG));
             const isNothingEquipped = equipDriverList.every(value => value === false);
             // 装備なしなら終了
             if(isNothingEquipped){
@@ -665,7 +613,7 @@ window.onload = () => {
 
         // ユーザーの操作を防ぐ透明なオーバーレイ要素を削除
         function deleteOverlay(){
-            const overlay = document.querySelector(`#${MY_OVERLAY_ID}`);
+            const overlay = document.querySelector(`#${CSS_CLASSES.MY_OVERLAY_ID}`);
             if (overlay) {
                 document.body.removeChild(overlay);
             }
@@ -676,9 +624,9 @@ window.onload = () => {
             // テンプレート読み込み
             try {
                 await TemplateLoader.loadTemplates();
-                console.log('Templates loaded successfully');
+                console.log(STRING_CONSTANTS.LOG_TEMPLATES_LOADED);
             } catch (error) {
-                console.error('Failed to load templates:', error);
+                console.error(STRING_CONSTANTS.LOG_TEMPLATES_ERROR, error);
                 return false;
             }
             
@@ -686,16 +634,16 @@ window.onload = () => {
             const isSuccess = await tryCacheDriverInfoList();
             if(isSuccess){
                 // 色のキャッシュ
-                const propertyInfoElement = document.querySelector('.property-info');
+                const propertyInfoElement = document.querySelector(CSS_CLASSES.PROPERTY_INFO);
                 // 強調色
-                const baseAddPropElement = propertyInfoElement.querySelector('.base-add-prop');
+                const baseAddPropElement = propertyInfoElement.querySelector(CSS_CLASSES.BASE_ADD_PROP);
                 const spanElements = baseAddPropElement.querySelectorAll('span');
                 activeItemColor = getComputedStyle(spanElements[1]).color;
                 // ヘッダ背景色
-                const headerElement = document.querySelector('.equipment-info h2');
+                const headerElement = document.querySelector(`${CSS_CLASSES.EQUIPMENT_INFO} h2`);
                 headerBackgroundColor = getComputedStyle(headerElement).backgroundColor;
             }
-            characterInfoElement = await waitForElement('.role-detail-container');
+            characterInfoElement = await waitForElement(CSS_CLASSES.ROLE_DETAIL_CONTAINER);
             // 変更監視開始
             setObservers();
         }
