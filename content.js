@@ -2,7 +2,7 @@
 
 window.onload = () => {
     // 設定定数を参照
-    const { CSS_CLASSES, NUMERIC_CONSTANTS, STRING_CONSTANTS, CSS_PROPERTIES, OBSERVER_OPTIONS, PROP_NAME_TRANSLATIONS, PROP_NAME, UI_TRANSLATIONS } = Config;
+    const { CSS_CLASSES, NUMERIC_CONSTANTS, STRING_CONSTANTS, CSS_PROPERTIES, OBSERVER_OPTIONS, STYLE_CONSTANTS, STYLE_TYPES, PROP_NAME_TRANSLATIONS, PROP_NAME, UI_TRANSLATIONS } = Config;
     
     // ドライバ情報リスト
     /** @type {Array<{
@@ -26,79 +26,6 @@ window.onload = () => {
     // キャラ情報の監視オブジェクト
     let characterInfoElementObserver;
 
-    // オリジナルのスタイル取得
-    function getOriginalStyleObject(targetElement, allowedProperties){
-        const targetElementStyle = window.getComputedStyle(targetElement);
-        const tempObject ={};
-        for (let style of allowedProperties) {
-            tempObject[style] = targetElementStyle.getPropertyValue(style);
-        }
-        return tempObject;
-    }
-
-    // オリジナルのタイトルスタイルオブジェクト
-    /** @type {{ [key: string]: string }} */
-    let titleStyleObject = {};
-    // キャッシュと適用
-    function cacheTitleStyleObject(targetElement){
-        // キャッシュ済み
-        if(Object.keys(titleStyleObject).length > 0){
-            return;
-        }
-        const allowedProperties = CSS_PROPERTIES.TITLE_STYLE_PROPERTIES;
-        titleStyleObject = getOriginalStyleObject(targetElement, allowedProperties);
-    }
-    function applyOriginalTitleStyle(element){
-        Object.assign(element.style, titleStyleObject);
-    }
-    
-    // オリジナルの項目スタイルオブジェクト
-    /** @type {{ [key: string]: string }} */
-    let itemStyleObject = {};
-    // キャッシュと適用
-    function cacheItemStyleObject(targetElement){
-        // キャッシュ済み
-        if(Object.keys(itemStyleObject).length > 0){
-            return;
-        }
-        const allowedProperties = CSS_PROPERTIES.ITEM_STYLE_PROPERTIES;
-        itemStyleObject = getOriginalStyleObject(targetElement, allowedProperties);
-    }
-    function applyOriginalItemStyle(element){
-        Object.assign(element.style, itemStyleObject);
-    }
-
-    // オリジナルの補足情報スタイルオブジェクト
-    /** @type {{ [key: string]: string }} */
-    let captionStyleObject = {};
-    // キャッシュと適用
-    function cacheCaptionStyleObject(targetElement){
-        // キャッシュ済み
-        if(Object.keys(captionStyleObject).length > 0){
-            return;
-        }
-        const allowedProperties = CSS_PROPERTIES.CAPTION_STYLE_PROPERTIES;
-        captionStyleObject = getOriginalStyleObject(targetElement, allowedProperties);
-    }
-    function applyOriginalCaptionStyle(element){
-        Object.assign(element.style, captionStyleObject);
-    }
-
-    // オリジナルの項目ボタン用スタイルオブジェクト
-    /** @type {{ [key: string]: string }} */
-    let itemShapeStyleObject = {};
-    // キャッシュと適用
-    function cacheItemShapeStyleObject(targetElement){
-        // キャッシュ済み
-        if(Object.keys(itemShapeStyleObject).length > 0){
-            return;
-        }
-        const allowedProperties = CSS_PROPERTIES.ITEM_SHAPE_STYLE_PROPERTIES;
-        itemShapeStyleObject = getOriginalStyleObject(targetElement, allowedProperties);
-    }
-    function applyOriginalItemShapeStyle(element){
-        Object.assign(element.style, itemShapeStyleObject);
-    }
 
     // ヘッダ色=スキル枠背景色：
     //      rgb(22, 22, 22)
@@ -113,10 +40,6 @@ window.onload = () => {
     // 罫線背景色
     //      rgb(42, 44, 43)
 
-    // 有効な項目用の色
-    let activeItemColor;
-    // ヘッダの背景色
-    let headerBackgroundColor;
     
     function waitForElementsInternal(selector, isSingleElement = true, 
         validate = (el) => !!el, 
@@ -133,7 +56,7 @@ window.onload = () => {
                     // 終了条件
                     if (stopCondition()) {
                         observer.disconnect();
-                        console.log(`${STRING_CONSTANTS.ERROR_ELEMENT_NOT_FOUND}: ${selector} ${STRING_CONSTANTS.ERROR_TIMEOUT_SUFFIX}`);
+                        console.log(`[ZZZ-Score] ${STRING_CONSTANTS.ERROR_ELEMENT_NOT_FOUND}: ${selector} ${STRING_CONSTANTS.ERROR_TIMEOUT_SUFFIX}`);
                         resolve(null);
                     }
                 });
@@ -172,8 +95,8 @@ window.onload = () => {
             const nameAndLevelElement = popupContentElement.querySelectorAll(CSS_CLASSES.POPUP_CONTENT_P);
             const nameElement = nameAndLevelElement[0];
             const levelElement = nameAndLevelElement[1];
-            cacheTitleStyleObject(nameElement);
-            cacheCaptionStyleObject(levelElement);
+            StyleManager.cacheStyle(STYLE_TYPES.TITLE, nameElement);
+            StyleManager.cacheStyle(STYLE_TYPES.CAPTION, levelElement);
             driverInfo.driverName = nameElement.textContent.trim();
             // 背景画像取得
             const titleStyle = window.getComputedStyle(nameElement);
@@ -181,7 +104,7 @@ window.onload = () => {
             driverInfo.driverLevel = levelElement.textContent.trim();
             // メインステータス
             const mainNameAndValueElement = popupContentElement.querySelectorAll(CSS_CLASSES.BASE_ATTRS_SPAN);
-            cacheItemStyleObject(mainNameAndValueElement[1]);
+            StyleManager.cacheStyle(STYLE_TYPES.ITEM, mainNameAndValueElement[1]);
             driverInfo.mainPropName = mainNameAndValueElement[0].textContent.trim();
             driverInfo.mainPropValue = mainNameAndValueElement[1].textContent.trim();
             // サブステータス
@@ -194,7 +117,7 @@ window.onload = () => {
                     subPropNameAndValue.name = spans[0].textContent.trim();
                     subPropNameAndValue.value = spans[1].textContent.trim();
                     subPropNameAndValues.push(subPropNameAndValue);
-                    cacheItemShapeStyleObject(spans[0].parentElement);
+                    StyleManager.cacheStyle(STYLE_TYPES.ITEM_SHAPE, spans[0].parentElement);
                 }
             });
             driverInfo.subPropNameAndValues = subPropNameAndValues;
@@ -227,7 +150,7 @@ window.onload = () => {
             const characterName = getCharacterName();
             chrome.storage.local.get(characterName, (result) => {
                 if (chrome.runtime.lastError) {
-                    console.error(STRING_CONSTANTS.ERROR_STORAGE_GET, chrome.runtime.lastError);
+                    console.error('[ZZZ-Score]', STRING_CONSTANTS.ERROR_STORAGE_GET, chrome.runtime.lastError);
                     return;
                 } 
                 if(!result || !result[characterName]){
@@ -321,17 +244,9 @@ window.onload = () => {
             const mainFrameElement = document.createElement('div');
             mainFrameElement.classList.add(CSS_CLASSES.MY_CLASS);
             
-            // スタイル情報をまとめる
-            const styleObjects = {
-                title: titleStyleObject,
-                item: itemStyleObject,
-                caption: captionStyleObject,
-                itemShape: itemShapeStyleObject
-            };
-            const colors = {
-                activeItem: activeItemColor,
-                headerBackground: headerBackgroundColor
-            };
+            // スタイルと色情報をまとめる（合計スコア表示用に後で再取得）
+            const styleObjects = StyleManager.getStyleCache();
+            const colors = StyleManager.getColors();
             const currentLang = getCurrentLanguage();
             const translations = UI_TRANSLATIONS[currentLang];
             // 要素を取得してコピー
@@ -345,9 +260,7 @@ window.onload = () => {
             divs.forEach(div => div.remove());
             // 親にスタイルを適用
             const ulStyle = window.getComputedStyle(skillInfoUl)
-            const allowedPropertiesForParent = 
-                ['height', 'padding', 'border', 'margin', 'box-sizing', 
-                    'align-items', 'color', 'display', 'gap', 'justify-content'];
+            const allowedPropertiesForParent = STYLE_CONSTANTS.PARENT_STYLE_PROPERTIES;
             for (let property of allowedPropertiesForParent) {
                 copiedUl.style[property] = ulStyle.getPropertyValue(property);
             }
@@ -357,20 +270,18 @@ window.onload = () => {
             copiedUl.style.minHeight = copiedUl.style.height;
             copiedUl.style.width = 'auto';
             copiedUl.style.height = 'auto';
-            copiedUl.style.paddingBottom = '16px';
+            copiedUl.style.paddingBottom = STYLE_CONSTANTS.PADDING_BOTTOM;
             // 子要素用のスタイル
             const lis = copiedUl.querySelectorAll('li');
             const liStyle = window.getComputedStyle(skillInfoChildUl);
-            const allowedPropertiesForChild = 
-                ['height', 'width', 'padding', 'margin', 'box-sizing', 'color',
-                     'display', 'border', 'border-radius', 'border-width', 'background'];
+            const allowedPropertiesForChild = STYLE_CONSTANTS.CHILD_STYLE_PROPERTIES;
             let totalScores = 0;
             for(let i = 0; i < lis.length; i++){
                 const li = lis[i];
                 // 子要素にスタイル適用
                 for (let property of allowedPropertiesForChild) {
                     // なぜかボーダーだけ細くなるので2倍にする
-                    if(property.includes('border') && property.includes('width')){
+                    if(property.includes(STYLE_CONSTANTS.BORDER_KEYWORD) && property.includes(STYLE_CONSTANTS.WIDTH_KEYWORD)){
                         li.style[property] = `calc(${liStyle.getPropertyValue(property)} * 2.0)`;
                     }else{
                         li.style[property] = liStyle.getPropertyValue(property);
@@ -385,8 +296,7 @@ window.onload = () => {
                 // 内容を作成
                 const content = document.createElement('div');
                 // 内容にスタイルを適用
-                const allowedPropertiesForContent = 
-                    ['background', 'border', 'margin', 'border-radius', 'height', 'width'];
+                const allowedPropertiesForContent = STYLE_CONSTANTS.CONTENT_STYLE_PROPERTIES;
                 for (let property of allowedPropertiesForContent) {
                     content.style[property] = contentStyle.getPropertyValue(property);
                 }
@@ -410,11 +320,9 @@ window.onload = () => {
                     };
                     
                     // コンポーネントを生成
-                    console.log('ScoreComponent available:', typeof ScoreComponent);
-                    console.log('driverData:', driverData);
                     
                     if (typeof ScoreComponent === 'undefined') {
-                        console.error('ScoreComponent not available');
+                        console.error('[ZZZ-Score] ScoreComponent not available');
                         return;
                     }
                     
@@ -427,7 +335,6 @@ window.onload = () => {
                         translations
                     );
                     
-                    console.log('componentResult:', componentResult);
                     
                     content.appendChild(componentResult.element.header);
                     content.appendChild(componentResult.element.stats);
@@ -441,14 +348,17 @@ window.onload = () => {
             mainFrameElement.append(copiedUl);
             parentElement.append(mainFrameElement);
             
-            // 合計スコア表示を更新
+            // 合計スコア表示を更新（最新のスタイル情報を取得）
             const checkboxParent = document.querySelector(`.${CSS_CLASSES.MY_CHECK_BOX_CONTAINER_CLASS}`);
             if (checkboxParent) {
+                const latestStyleObjects = StyleManager.getStyleCache();
+                
+                
                 ScoreComponent.updateTotalScore(
                     checkboxParent, 
                     totalScores, 
                     translations.TOTAL_SCORE, 
-                    styleObjects
+                    latestStyleObjects
                 );
             }
         }
@@ -456,7 +366,8 @@ window.onload = () => {
         // チェックボックス変更（引数は次のチェック状態）
         function changeCheckbox(checkboxElement, nextCheckedState){
             checkboxElement.dataset.checked = (!!nextCheckedState).toString();
-            checkboxElement.style.color = nextCheckedState ? activeItemColor : captionStyleObject['color'];
+            const colors = StyleManager.getColors();
+            checkboxElement.style.color = nextCheckedState ? colors.activeItem : StyleManager.getStyleCache().caption['color'];
         }
 
         // 加算対象のチェックボックス描画
@@ -467,12 +378,7 @@ window.onload = () => {
             });
             
             // スタイル情報を準備
-            const styleObjects = {
-                title: titleStyleObject,
-                item: itemStyleObject,
-                caption: captionStyleObject,
-                itemShape: itemShapeStyleObject
-            };
+            const styleObjects = StyleManager.getStyleCache();
             
             const currentLang = getCurrentLanguage();
             const translations = PROP_NAME_TRANSLATIONS[currentLang];
@@ -514,9 +420,8 @@ window.onload = () => {
             // キャラ名をキーにチェック状態を保存
             chrome.storage.local.set({ [characterName]: targetPropsObject }, () => {
                 if (chrome.runtime.lastError) {
-                    console.error(STRING_CONSTANTS.ERROR_STORAGE_SET, chrome.runtime.lastError);
+                    console.error('[ZZZ-Score]', STRING_CONSTANTS.ERROR_STORAGE_SET, chrome.runtime.lastError);
                 } else {
-                    console.log(`${characterName} ${STRING_CONSTANTS.LOG_DATA_SAVED}`, targetPropsObject);
                 }
             });
         }
@@ -624,9 +529,8 @@ window.onload = () => {
             // テンプレート読み込み
             try {
                 await TemplateLoader.loadTemplates();
-                console.log(STRING_CONSTANTS.LOG_TEMPLATES_LOADED);
             } catch (error) {
-                console.error(STRING_CONSTANTS.LOG_TEMPLATES_ERROR, error);
+                console.error('[ZZZ-Score]', STRING_CONSTANTS.LOG_TEMPLATES_ERROR, error);
                 return false;
             }
             
@@ -635,13 +539,14 @@ window.onload = () => {
             if(isSuccess){
                 // 色のキャッシュ
                 const propertyInfoElement = document.querySelector(CSS_CLASSES.PROPERTY_INFO);
-                // 強調色
-                const baseAddPropElement = propertyInfoElement.querySelector(CSS_CLASSES.BASE_ADD_PROP);
-                const spanElements = baseAddPropElement.querySelectorAll('span');
-                activeItemColor = getComputedStyle(spanElements[1]).color;
-                // ヘッダ背景色
-                const headerElement = document.querySelector(`${CSS_CLASSES.EQUIPMENT_INFO} h2`);
-                headerBackgroundColor = getComputedStyle(headerElement).backgroundColor;
+                // 色情報をキャッシュ
+                StyleManager.cacheColors(CSS_CLASSES);
+                
+                // ニックネーム（合計スコア）用のスタイルをキャッシュ
+                const nicknameElement = document.querySelector(CSS_CLASSES.NICKNAME);
+                if (nicknameElement) {
+                    StyleManager.cacheStyle(STYLE_TYPES.NICKNAME, nicknameElement);
+                }
             }
             characterInfoElement = await waitForElement(CSS_CLASSES.ROLE_DETAIL_CONTAINER);
             // 変更監視開始
@@ -655,7 +560,7 @@ window.onload = () => {
                 drawConfig();
                 loadAndSetTargetPropNamesObject(drawScore);
             } catch (error) {
-                console.error('エラー:', error);
+                console.error('[ZZZ-Score] エラー:', error);
             }
         }
     

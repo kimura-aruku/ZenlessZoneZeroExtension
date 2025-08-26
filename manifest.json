@@ -1,6 +1,6 @@
 {
     "content_scripts": [ {
-       "js": [ "config.js", "template-loader.js", "score-component.js", "content.js" ],
+       "js": [ "config.js", "style-manager.js", "template-loader.js", "score-component.js", "content.js" ],
        "matches": [ "https://act.hoyolab.com/app/zzz-game-record/index.html*" ],
        "run_at": "document_start"
     } ],

@@ -115,24 +115,10 @@ window.Config = (() => {
         ITEM_SHAPE_STYLE_PROPERTIES: [
             'border', 'background', 'border-radius', 'padding'
         ],
-        
-        // コンテナスタイル用プロパティ群
-        PARENT_STYLE_PROPERTIES: [
-            'height', 'padding', 'border', 'margin', 'box-sizing', 
-            'align-items', 'color', 'display', 'gap', 'justify-content'
-        ],
-        CHILD_STYLE_PROPERTIES: [
-            'height', 'width', 'padding', 'margin', 'box-sizing', 'color',
-            'display', 'border', 'border-radius', 'border-width', 'background'
-        ],
-        CONTENT_STYLE_PROPERTIES: [
-            'background', 'border', 'margin', 'border-radius', 'height', 'width'
+        NICKNAME_STYLE_PROPERTIES: [ // ニックネーム（合計スコア）用のスタイルプロパティ
+            'font-family'
         ],
         
-        // 個別プロパティ
-        COLOR: 'color',
-        BACKGROUND_COLOR: 'backgroundColor',
-        BACKGROUND_IMAGE: 'backgroundImage'
     });
 
     // MutationObserver オプション
@@ -156,6 +142,15 @@ window.Config = (() => {
         OVERLAY: 'overlay-template'
     });
 
+    // スタイルタイプ定数
+    const STYLE_TYPES = Object.freeze({
+        TITLE: 'title',
+        ITEM: 'item',
+        CAPTION: 'caption',
+        ITEM_SHAPE: 'itemShape',
+        NICKNAME: 'nickname'
+    });
+
     // チェックボックスID生成用
     const CHECKBOX_ID_PREFIX = 'checkbox';
 
@@ -171,6 +166,29 @@ window.Config = (() => {
         EMPTY_DISPLAY: '-',
         BORDER_WIDTH_MULTIPLIER: 2.0,
         AUTO_SIZE: 'auto'
+    });
+
+    // スタイル関連定数
+    const STYLE_CONSTANTS = Object.freeze({
+        // drawScore内のスタイルプロパティ配列
+        PARENT_STYLE_PROPERTIES: [ // 親コンテナ（ul要素）用のスタイルプロパティ
+            'height', 'padding', 'border', 'margin', 'box-sizing', 
+            'align-items', 'color', 'display', 'gap', 'justify-content'
+        ],
+        CHILD_STYLE_PROPERTIES: [ // 子要素（li要素）用のスタイルプロパティ
+            'height', 'width', 'padding', 'margin', 'box-sizing', 'color',
+            'display', 'border', 'border-radius', 'border-width', 'background'
+        ],
+        CONTENT_STYLE_PROPERTIES: [ // コンテンツ要素（ドライバ情報表示div）用のスタイルプロパティ
+            'background', 'border', 'margin', 'border-radius', 'height', 'width'
+        ],
+        
+        // スタイル値
+        PADDING_BOTTOM: '16px', // 下部パディング値
+        
+        // スタイルキーワード
+        BORDER_KEYWORD: 'border', // ボーダー関連プロパティ判定用キーワード
+        WIDTH_KEYWORD: 'width' // 幅関連プロパティ判定用キーワード
     });
 
     // プロパティ名翻訳
@@ -225,9 +243,11 @@ window.Config = (() => {
         CSS_PROPERTIES,
         OBSERVER_OPTIONS,
         TEMPLATE_IDS,
+        STYLE_TYPES,
         CHECKBOX_ID_PREFIX,
         REGEX_PATTERNS,
         DEFAULTS,
+        STYLE_CONSTANTS,
         PROP_NAME_TRANSLATIONS,
         PROP_NAME,
         UI_TRANSLATIONS

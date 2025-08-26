@@ -157,13 +157,24 @@ window.ScoreComponent = (() => {
         const labelElement = container.querySelector('.total-score-label');
         const valueElement = container.querySelector('.total-score-value');
         
+        
+        if (!labelElement || !valueElement) {
+            console.error('[ZZZ-Score] Total score elements not found');
+            return;
+        }
+        
+        
         // ラベル設定
         labelElement.textContent = totalScoreLabel;
+        // ニックネームからフォントファミリーのみ適用し、その他は従来スタイル（title）を適用
         Object.assign(labelElement.style, styleObjects.title);
+        Object.assign(labelElement.style, styleObjects.nickname);
         
         // 値設定
         valueElement.textContent = totalScore.toFixed(2);
+        // ニックネームからフォントファミリーのみ適用し、その他は従来スタイル（title）を適用
         Object.assign(valueElement.style, styleObjects.title);
+        Object.assign(valueElement.style, styleObjects.nickname);
     }
 
     /**
@@ -193,7 +204,7 @@ window.ScoreComponent = (() => {
 
         // デバッグ用ログ
         if (!nameElement || !valueElement) {
-            console.error('Elements not found:', { nameElement, valueElement, element });
+            console.error('[ZZZ-Score] Elements not found:', { nameElement, valueElement, element });
         }
 
         // 基本スタイル適用

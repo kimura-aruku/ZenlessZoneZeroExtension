@@ -37,9 +37,8 @@ window.TemplateLoader = (() => {
             });
 
             templatesLoaded = true;
-            console.log('Templates loaded successfully:', Object.keys(templates));
         } catch (error) {
-            console.error('Failed to load templates:', error);
+            console.error('[ZZZ-Score] Failed to load templates:', error);
             throw error;
         }
     }
