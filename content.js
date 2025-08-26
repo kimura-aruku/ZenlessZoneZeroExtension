@@ -378,8 +378,14 @@ window.onload = () => {
             checkboxElement.style.color = nextCheckedState ? colors.activeItem : StyleManager.getStyleCache().caption['color'];
         }
 
-        // 加算対象のチェックボックス描画
+        // 加算対象のチェックボックス描画（スコア描画も含む）
         function drawConfig(){
+            drawConfigOnly();
+            drawScore();
+        }
+
+        // 加算対象のチェックボックス描画のみ（スコア描画なし）
+        function drawConfigOnly(){
             // 念のため削除
             document.querySelectorAll(`.${CSS_CLASSES.MY_CHECK_BOX_CLASS}`)?.forEach(element => {
                 element.remove();
@@ -438,7 +444,7 @@ window.onload = () => {
         async function reDraw() {
             const isValid = await tryCacheDriverInfoList();
             if(isValid){
-                drawConfig();
+                drawConfigOnly();
                 loadAndSetTargetPropNamesObject(drawScore);
             }
         }
@@ -565,7 +571,7 @@ window.onload = () => {
         async function firstDraw(){
             try {
                 await setup();
-                drawConfig();
+                drawConfigOnly();
                 loadAndSetTargetPropNamesObject(drawScore);
             } catch (error) {
                 console.error('[ZZZ-Score] エラー:', error);
