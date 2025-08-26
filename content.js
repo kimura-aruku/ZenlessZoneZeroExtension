@@ -364,6 +364,20 @@ window.onload = () => {
             parentElement.style.height = 'auto';
             const mainFrameElement = document.createElement('div');
             mainFrameElement.classList.add(MY_CLASS);
+            
+            // スタイル情報をまとめる
+            const styleObjects = {
+                title: titleStyleObject,
+                item: itemStyleObject,
+                caption: captionStyleObject,
+                itemShape: itemShapeStyleObject
+            };
+            const colors = {
+                activeItem: activeItemColor,
+                headerBackground: headerBackgroundColor
+            };
+            const currentLang = getCurrentLanguage();
+            const translations = UI_TRANSLATIONS[currentLang];
             // 要素を取得してコピー
             const skillInfoUl = document.querySelector('.skill-info ul');
             const skillInfoChildUl = skillInfoUl.querySelector('.skill-item');
@@ -428,175 +442,40 @@ window.onload = () => {
                 content.style.overflow = 'hidden';
                 const driverInfo = driverInfoList[i];
                 if (driverInfo) {
-                    // ヘッダー：アイコン,タイトル,レベル
-                    const contentHeaderElement = document.createElement('div');
-                    contentHeaderElement.classList.add('alk-driver-content');
-                    contentHeaderElement.style.display = 'flex';
-                    contentHeaderElement.style.padding = '8px 8px 6px 8px';
-                    contentHeaderElement.style.backgroundColor = headerBackgroundColor;
-                    // ドライバ画像
-                    const driverImageElement = document.createElement('img');
-                    driverImageElement.src = driverInfo.iconSource;
+                    // 画像サイズを計算
                     const originalLi = skillInfoUl.querySelector('li');
                     const parentWidth = originalLi.offsetWidth;
                     const imageWidth = parentWidth * 0.15;
-                    driverImageElement.style.width = `${imageWidth}px`;
-                    driverImageElement.style.height = `${imageWidth}px`;
-                    contentHeaderElement.appendChild(driverImageElement);
-                    // タイトル部
-                    const titleElement = document.createElement('div');
-                    applyOriginalTitleStyle(titleElement);
-                    titleElement.style.marginLeft = '8px';
-                    const titleNameElement = document.createElement('p');
-                    // 文字数が長い場合でも最後の番号文字を表示するための加工
-                    const driverName = driverInfo.driverName;
-                    if (driverName.length >= 9) {
-                        titleNameElement.textContent = driverName.slice(0, 4) + '…' + driverName.slice(-3);
-                    }else{
-                        titleNameElement.textContent = driverName;
+                    
+                    // ドライバデータを準備
+                    const driverData = {
+                        ...driverInfo,
+                        imageWidth: imageWidth
+                    };
+                    
+                    // コンポーネントを生成
+                    console.log('ScoreComponent available:', typeof ScoreComponent);
+                    console.log('driverData:', driverData);
+                    
+                    if (typeof ScoreComponent === 'undefined') {
+                        console.error('ScoreComponent not available');
+                        return;
                     }
-                    titleNameElement.style.overflow = 'hidden';
-                    titleNameElement.style.whiteSpace = 'nowrap';
-                    titleNameElement.style.paddingRight = '20px';
-                    titleNameElement.style.fontSize = '12px';
-                    // タイトル背景画像（レアリティ画像）
-                    if(driverInfo.driverBackgroundImage){
-                        titleNameElement.style.backgroundImage = driverInfo.driverBackgroundImage;
-                        titleNameElement.style.backgroundPosition = 'right center';
-                        titleNameElement.style.backgroundRepeat = 'no-repeat';
-                        titleNameElement.style.backgroundOrigin = 'padding-box';
-                        titleNameElement.style.backgroundSize = 'contain';
-                    }
-                    titleElement.appendChild(titleNameElement);
-                    // レベル部
-                    const driverLevelElement = document.createElement('p');
-                    applyOriginalCaptionStyle(driverLevelElement);
-                    driverLevelElement.textContent = driverInfo.driverLevel;
-                    titleElement.appendChild(driverLevelElement);
-                    contentHeaderElement.appendChild(titleElement);
-                    // メインステータス+サブステータス+スコア
-                    const subPropListElement = document.createElement('div');
-                    subPropListElement.style.display = 'flex';
-                    subPropListElement.style.flexDirection = 'column';
-                    subPropListElement.style.overflow = 'hidden';
-                    subPropListElement.style.whiteSpace = 'nowrap';
-                    // メインステータス
-                    const mainPropElement = document.createElement('div');
-                    const mainPropNameElement = document.createElement('span');
-                    applyOriginalItemStyle(mainPropNameElement);
-                    const mainPropName = driverInfo.mainPropName;
-                    if (mainPropName.length > 9) {
-                        mainPropNameElement.textContent = mainPropName.slice(0, 8) + '…';
-                    }else{
-                        mainPropNameElement.textContent = mainPropName;
-                    }
-                    mainPropNameElement.style.float = 'left';
-                    const mainPropValueElement = document.createElement('span');
-                    applyOriginalItemStyle(mainPropValueElement);
-                    mainPropValueElement.textContent = driverInfo.mainPropValue;
-                    mainPropValueElement.style.float = 'right';
-                    mainPropElement.style.padding = '6px 8px';
-                    mainPropElement.appendChild(mainPropNameElement);
-                    mainPropElement.appendChild(mainPropValueElement);
-                    subPropListElement.appendChild(mainPropElement);
-
-                    // サブステータス
-                    const subPropNameAndValues = driverInfo.subPropNameAndValues;
-                    let scores = 0
-                    // 空行も作るため4つ固定
-                    for(let j = 0; j < 4; j++){
-                        subProp = subPropNameAndValues[j];
-                        const subPropElement = document.createElement('div');
-                        subPropElement.style.overflow = 'hidden';
-                        subPropElement.style.whiteSpace = 'nowrap';
-                        subPropElement.style.padding = '6px 8px';
-                        if(subProp){
-                            // スコア
-                            const ScoreAndHitCount = getScoreAndHitCount(subProp.name, subProp.value)
-                            scores += ScoreAndHitCount.score;
-                            // 各要素を作成
-                            const subPropNameElement = document.createElement('span');
-                            applyOriginalItemStyle(subPropNameElement);
-                            const subPropHitCountElement = document.createElement('span');
-                            applyOriginalItemStyle(subPropHitCountElement);
-                            const subPropValueElement = document.createElement('span');
-                            applyOriginalItemStyle(subPropValueElement);
-                            // 強調表示
-                            if(ScoreAndHitCount && ScoreAndHitCount.score > 0){
-                                subPropNameElement.style.color = activeItemColor;
-                                subPropHitCountElement.style.color = activeItemColor;
-                                subPropValueElement.style.color = activeItemColor;
-                            }else{
-                                subPropNameElement.style.color = captionStyleObject['color'];
-                                subPropHitCountElement.style.color = captionStyleObject['color'];
-                                subPropValueElement.style.color = captionStyleObject['color'];
-                            }
-                            // ステータス名
-                            subPropNameElement.textContent = subProp.name;
-                            subPropNameElement.style.float = 'left';
-                            subPropElement.appendChild(subPropNameElement);
-                            // ヒット回数
-                            if(ScoreAndHitCount && ScoreAndHitCount.hitCount > 0){
-                                subPropHitCountElement.textContent = ScoreAndHitCount.hitCount.toFixed(0);
-                                subPropHitCountElement.style.float = 'left';
-                                // 背景色設定
-                                let currentColor = subPropHitCountElement.style.color;
-                                let rgbaMatch = currentColor.match(/rgba?\((\d+), (\d+), (\d+)(?:, (\d+(\.\d+)?))?\)/);
-                                if (rgbaMatch) {
-                                    let red = rgbaMatch[1];
-                                    let green = rgbaMatch[2];
-                                    let blue = rgbaMatch[3];
-                                    let alpha = 0.16;
-                                    subPropHitCountElement.style.backgroundColor = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-                                }
-                                subPropHitCountElement.style.marginLeft = '6px';
-                                subPropHitCountElement.style.padding = '0 2px';
-                                subPropElement.appendChild(subPropHitCountElement);
-                            }
-                            // 数値
-                            subPropValueElement.textContent = subProp.value;
-                            subPropValueElement.style.float = 'right';
-                            subPropElement.appendChild(subPropValueElement);
-                            subPropListElement.appendChild(subPropElement);
-                        }
-                        // 空行
-                        else{
-                            // ステータス名
-                            const subPropNameElement = document.createElement('span');
-                            applyOriginalItemStyle(subPropNameElement);
-                            subPropNameElement.textContent = '-';
-                            subPropNameElement.style.float = 'left';
-                            // 数値
-                            const subPropValueElement = document.createElement('span');
-                            applyOriginalItemStyle(subPropValueElement);
-                            subPropValueElement.textContent = '-';
-                            subPropValueElement.style.float = 'right';
-                            // 生成
-                            subPropElement.appendChild(subPropNameElement);
-                            subPropElement.appendChild(subPropValueElement);
-                            subPropListElement.appendChild(subPropElement);
-                        }
-                    }
-                    // スコア
-                    totalScores += scores;
-                    const totalElement = document.createElement('div');
-                    totalElement.style.backgroundColor = headerBackgroundColor;
-                    const totalNameElement = document.createElement('span');
-                    applyOriginalItemStyle(totalNameElement);
-                    totalNameElement.textContent = UI_TRANSLATIONS[getCurrentLanguage()].SCORE;
-                    totalNameElement.style.float = 'left';
-                    const totalValueElement = document.createElement('span');
-                    applyOriginalItemStyle(totalValueElement);
-                    totalValueElement.textContent = scores.toFixed(2);
-                    totalValueElement.style.float = 'right';
-                    totalElement.style.padding = '8px 8px 8px 8px';
-                    totalElement.appendChild(totalNameElement);
-                    totalElement.appendChild(totalValueElement);
-                    // ステータスリスト
-                    subPropListElement.appendChild(totalElement);
-                    // 内容
-                    content.appendChild(contentHeaderElement);
-                    content.appendChild(subPropListElement);
+                    
+                    const componentResult = ScoreComponent.createDriverComponent(
+                        driverData,
+                        styleObjects,
+                        colors,
+                        getScoreAndHitCount,
+                        getActivePropNamesFromCheckboxes(),
+                        translations
+                    );
+                    
+                    console.log('componentResult:', componentResult);
+                    
+                    content.appendChild(componentResult.element.header);
+                    content.appendChild(componentResult.element.stats);
+                    totalScores += componentResult.score;
                 } 
                 else {
                     // 未装備のドライバ欄
@@ -606,33 +485,16 @@ window.onload = () => {
             mainFrameElement.append(copiedUl);
             parentElement.append(mainFrameElement);
             
-            // 合計
-            // チェックボックスのグループを親にする
+            // 合計スコア表示を更新
             const checkboxParent = document.querySelector(`.${MY_CHECK_BOX_CONTAINER_CLASS}`);
-            const totalScoreLabelElement = document.createElement('span');
-            totalScoreLabelElement.classList.add(MY_CLASS);
-            totalScoreLabelElement.textContent = UI_TRANSLATIONS[getCurrentLanguage()].TOTAL_SCORE;
-            applyOriginalTitleStyle(totalScoreLabelElement);
-            totalScoreLabelElement.style.float = 'right';
-            totalScoreLabelElement.style.textAlign = 'right';
-            totalScoreLabelElement.style.marginLeft  = 'auto';
-            totalScoreLabelElement.style.position = 'absolute';
-            totalScoreLabelElement.style.right = '12%';
-            totalScoreLabelElement.style.fontFamily = 'inpin hongmengti';
-            checkboxParent.appendChild(totalScoreLabelElement);
-
-            const driverScoreElement = document.createElement('span');
-            driverScoreElement.classList.add(MY_CLASS);
-            driverScoreElement.textContent = `${totalScores.toFixed(2)}`;
-            applyOriginalTitleStyle(driverScoreElement);
-            driverScoreElement.style.float = 'right';
-            driverScoreElement.style.textAlign = 'right';
-            driverScoreElement.style.marginLeft  = 'auto';
-            driverScoreElement.style.position = 'absolute';
-            driverScoreElement.style.right = '0';
-            driverScoreElement.style.paddingRight = '22px';
-            driverScoreElement.style.fontFamily = 'inpin hongmengti';
-            checkboxParent.appendChild(driverScoreElement);
+            if (checkboxParent) {
+                ScoreComponent.updateTotalScore(
+                    checkboxParent, 
+                    totalScores, 
+                    translations.TOTAL_SCORE, 
+                    styleObjects
+                );
+            }
         }
 
         // チェックボックス変更（引数は次のチェック状態）
@@ -647,35 +509,33 @@ window.onload = () => {
             document.querySelectorAll(`.${MY_CHECK_BOX_CLASS}`)?.forEach(element => {
                 element.remove();
             });
-            // チェックボックスを6つ作成
-            const container = document.createElement('div');
-            container.classList.add(MY_CHECK_BOX_CONTAINER_CLASS);
-            // TODO:要素コピーした方がいい
-            container.style.display = 'flex';
-            container.style.columnGap = '5px';
-            container.style.padding = '0 22px 8px 18px';
-            const currentLang = getCurrentLanguage();
-            const propKeyAndNames = Object.entries(PROP_NAME_TRANSLATIONS[currentLang]);
-            for (let i = 0; i < propKeyAndNames.length; i++) {
-                const propKeyAndName = propKeyAndNames[i];
-                const span = document.createElement('span');
-                span.id = `checkbox${i}`;
-                span.classList.add(MY_CHECK_BOX_CLASS, `${propKeyAndName[0]}`);
-                span.textContent = propKeyAndName[1];
-                applyOriginalItemStyle(span);
-                applyOriginalItemShapeStyle(span);
-                span.style.cursor = 'pointer';
             
-                // クリックでオンオフ切り替え
-                span.addEventListener('click', () => {
-                    const isChecked = span.dataset.checked === 'true';
-                    changeCheckbox(span, !isChecked);
-                    saveTargetProp();
-                    drawScore();
-                });
-                container.appendChild(span);
-            }
-            // 仮の親
+            // スタイル情報を準備
+            const styleObjects = {
+                title: titleStyleObject,
+                item: itemStyleObject,
+                caption: captionStyleObject,
+                itemShape: itemShapeStyleObject
+            };
+            
+            const currentLang = getCurrentLanguage();
+            const translations = PROP_NAME_TRANSLATIONS[currentLang];
+            
+            // チェックボックス変更時のコールバック
+            const onCheckboxChange = (checkbox, isChecked) => {
+                changeCheckbox(checkbox, isChecked);
+                saveTargetProp();
+                drawScore();
+            };
+            
+            // コンポーネントを生成
+            const container = ScoreComponent.createCheckboxContainer(
+                translations,
+                styleObjects,
+                onCheckboxChange
+            );
+            
+            // 親要素に追加
             const parentElement = document.querySelector('.equipment-info');
             parentElement.appendChild(container);
         }
@@ -799,27 +659,29 @@ window.onload = () => {
 
         // ユーザーの操作を防ぐ透明なオーバーレイ要素追加
         function addOverlay(){
-            const overlay = document.createElement("div");
-            overlay.style.position = "fixed";
-            overlay.style.top = "0";
-            overlay.style.left = "0";
-            overlay.style.width = "100vw";
-            overlay.style.height = "100vh";
-            overlay.style.background = "rgba(0, 0, 0, 0)"; 
-            overlay.style.zIndex = "9999";
-            overlay.style.pointerEvents = "none";
-            overlay.id = MY_OVERLAY_ID;
+            const overlay = ScoreComponent.createOverlay();
             document.body.appendChild(overlay);
         }
 
         // ユーザーの操作を防ぐ透明なオーバーレイ要素を削除
         function deleteOverlay(){
             const overlay = document.querySelector(`#${MY_OVERLAY_ID}`);
-            document.body.removeChild(overlay);
+            if (overlay) {
+                document.body.removeChild(overlay);
+            }
         }
 
         // 最初に実行
         async function setup(){
+            // テンプレート読み込み
+            try {
+                await TemplateLoader.loadTemplates();
+                console.log('Templates loaded successfully');
+            } catch (error) {
+                console.error('Failed to load templates:', error);
+                return false;
+            }
+            
             // ドライバ情報取得
             const isSuccess = await tryCacheDriverInfoList();
             if(isSuccess){

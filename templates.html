@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Score Component Templates</title>
+</head>
+<body>
+    <!-- ドライバ情報表示用のメインコンテナ -->
+    <template id="driver-container-template">
+        <div class="alk-driver-content" style="display: flex; padding: 8px 8px 6px 8px;">
+            <img class="driver-icon" src="" alt="Driver Icon">
+            <div class="driver-info" style="margin-left: 8px;">
+                <p class="driver-name" style="font-size: 12px; overflow: hidden; white-space: nowrap; padding-right: 20px; background-position: right center; background-repeat: no-repeat; background-origin: padding-box; background-size: contain;"></p>
+                <p class="driver-level"></p>
+            </div>
+        </div>
+        <div class="driver-stats" style="display: flex; flex-direction: column; overflow: hidden; white-space: nowrap;">
+            <div class="main-stat stat-row" style="overflow: hidden; white-space: nowrap; padding: 6px 8px;">
+                <span class="stat-name" style="float: left;"></span>
+                <span class="stat-value" style="float: right;"></span>
+            </div>
+            <div class="sub-stat-1 stat-row" style="overflow: hidden; white-space: nowrap; padding: 6px 8px;">
+                <span class="stat-name" style="float: left;"></span>
+                <span class="hit-count" style="float: left; margin-left: 6px; padding: 0 2px;"></span>
+                <span class="stat-value" style="float: right;"></span>
+            </div>
+            <div class="sub-stat-2 stat-row" style="overflow: hidden; white-space: nowrap; padding: 6px 8px;">
+                <span class="stat-name" style="float: left;"></span>
+                <span class="hit-count" style="float: left; margin-left: 6px; padding: 0 2px;"></span>
+                <span class="stat-value" style="float: right;"></span>
+            </div>
+            <div class="sub-stat-3 stat-row" style="overflow: hidden; white-space: nowrap; padding: 6px 8px;">
+                <span class="stat-name" style="float: left;"></span>
+                <span class="hit-count" style="float: left; margin-left: 6px; padding: 0 2px;"></span>
+                <span class="stat-value" style="float: right;"></span>
+            </div>
+            <div class="sub-stat-4 stat-row" style="overflow: hidden; white-space: nowrap; padding: 6px 8px;">
+                <span class="stat-name" style="float: left;"></span>
+                <span class="hit-count" style="float: left; margin-left: 6px; padding: 0 2px;"></span>
+                <span class="stat-value" style="float: right;"></span>
+            </div>
+            <div class="total-score" style="padding: 8px 8px 8px 8px;">
+                <span class="score-label" style="float: left;"></span>
+                <span class="score-value" style="float: right;"></span>
+            </div>
+        </div>
+    </template>
+
+    <!-- チェックボックスコンテナ -->
+    <template id="checkbox-container-template">
+        <div class="alk-check-box-container" style="display: flex; column-gap: 5px; padding: 0 22px 8px 18px;">
+            <span class="alk-check-box HP" id="checkbox0" style="cursor: pointer;"></span>
+            <span class="alk-check-box ATK" id="checkbox1" style="cursor: pointer;"></span>
+            <span class="alk-check-box DEF" id="checkbox2" style="cursor: pointer;"></span>
+            <span class="alk-check-box CRIT_RATE" id="checkbox3" style="cursor: pointer;"></span>
+            <span class="alk-check-box CRIT_DMG" id="checkbox4" style="cursor: pointer;"></span>
+            <span class="alk-check-box ANOMALY_PROFICIENCY" id="checkbox5" style="cursor: pointer;"></span>
+            <span class="total-score-label" style="float: right; text-align: right; margin-left: auto; position: absolute; right: 12%; font-family: inpin hongmengti;"></span>
+            <span class="total-score-value" style="float: right; text-align: right; margin-left: auto; position: absolute; right: 0; padding-right: 22px; font-family: inpin hongmengti;"></span>
+        </div>
+    </template>
+
+    <!-- オーバーレイ -->
+    <template id="overlay-template">
+        <div id="alk-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0); z-index: 9999; pointer-events: none;"></div>
+    </template>
+</body>
+</html>

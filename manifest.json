@@ -1,6 +1,6 @@
 {
     "content_scripts": [ {
-       "js": [ "content.js" ],
+       "js": [ "template-loader.js", "score-component.js", "content.js" ],
        "matches": [ "https://act.hoyolab.com/app/zzz-game-record/index.html*" ],
        "run_at": "document_start"
     } ],
@@ -15,6 +15,12 @@
        "32": "Icons/Icon32.png",
        "48": "Icons/Icon48.png",
        "128": "Icons/Icon128.png"
-    }
+    },
+    "web_accessible_resources": [
+        {
+            "resources": ["templates.html"],
+            "matches": ["https://act.hoyolab.com/*"]
+        }
+    ]
  }
  
